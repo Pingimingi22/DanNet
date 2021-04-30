@@ -12,8 +12,35 @@
 
 #include "UDPListener.h"
 
+#include <thread>
+#include <string>
+
+void HandleInput(std::string inputBuffer)
+{
+	bool inputIsRunning = true;
+
+	while (inputIsRunning)
+	{
+		std::getline(std::cin, inputBuffer);
+
+		if (inputBuffer == "exit")
+		{
+			std::cout << "Closing program.";
+			return;
+		}
+
+		std::cout << inputBuffer << std::endl;
+		//sendto()
+	}
+}
+
+
 int main()
 {
+	// ------------- Testing make a new thread. ------------- //
+	std::string inputBuffer;
+	std::thread testThread = std::thread(HandleInput, inputBuffer);
+
 	WSADATA wsadata;
 	int result = WSAStartup(MAKEWORD(2, 2), &wsadata);
 	
@@ -28,9 +55,6 @@ int main()
 	{
 		testListener.Update();
 	}
-
-
-
 
 	WSACleanup();
 
