@@ -10,7 +10,9 @@ UDPListener::UDPListener(std::string ipAddress, std::string portNumber)
 
 	servAddress.sin_family = AF_INET;
 	servAddress.sin_port = htons(std::stoi(portNumber.c_str()));
-	servAddress.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+    //servAddress.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+	//servAddress.sin_addr.S_un.S_addr;
+	//inet_pton(AF_INET, "10.17.33.83", (sockaddr*)&servAddress.sin_addr.S_un.S_addr);
 
 	m_hostSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (m_hostSocket == INVALID_SOCKET)
@@ -33,8 +35,12 @@ UDPListener::UDPListener(std::string ipAddress, std::string portNumber)
 	int testServerAddressSize = sizeof(sockaddr_in);
 	getsockname(m_hostSocket, (sockaddr*)&testServerAddress, &testServerAddressSize);
 
+
+	char testServerIP[256];
+	inet_ntop(AF_INET, (sockaddr*)&testServerAddress, &testServerIP[0], 256);
+
 	std::cout << "======================== SERVER SETTINGS ========================" << std::endl;
-	std::cout << "IP Address: " << ntohl(testServerAddress.sin_addr.S_un.S_addr) << std::endl;
+	std::cout << "IP Address: " << testServerIP << std::endl;
 	std::cout << "Port Number: " << ntohs(testServerAddress.sin_port) << std::endl;
 	std::cout << "=================================================================" << std::endl;
 }

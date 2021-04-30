@@ -15,10 +15,6 @@ void HandleInput(std::string messageBuffer, sockaddr* serverAddress) // ========
 		int hostSocketAddressSize = sizeof(sockaddr_in);
 		getsockname(m_hostSocket, (sockaddr*)&hostSocketAddress, &hostSocketAddressSize);
 
-		std::cout << "Port Number: " << ntohs(hostSocketAddress.sin_port) << std::endl;
-		char testIP[256];
-		inet_ntop(AF_INET, (sockaddr*)&hostSocketAddress.sin_addr.S_un.S_addr, &testIP[0], 256);
-		std::cout << "IP: " << ntohl(hostSocketAddress.sin_addr.S_un.S_addr) << std::endl;
 		if (sendResult == -1)
 		{
 			std::cout << "An error occured when trying to send a message." << std::endl;
@@ -36,23 +32,33 @@ int main()
 
 
 
-
+	// -------------------------------- Setting up server address -------------------------------- //
 	sockaddr_in serverAddress;
 	memset(&serverAddress, 0, sizeof(sockaddr_in));
 
 	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(25565);
+	// ------------------------------------------------------------------------------------------- //
 
 
-	inet_pton(AF_INET, "127.0.0.1", &serverAddress.sin_addr.S_un.S_addr);
+	// -------------------------------- Startup Info -------------------------------- //
+	DisplayStartupInfo(serverAddress.sin_addr.S_un.S_addr, serverAddress.sin_port);
+	// ----------------------------------------------------------------------------- //
 
+	
+
+
+	// ---------------------------- Setting up host socket ---------------------------- //
+	sockaddr_in hostSocketAddress;
+	hostSocketAddress.sin_port = 0; // trying to get a ephemeral port.
+	hostSocketAddress.sin_family = AF_INET;
 	m_hostSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	bind(m_hostSocket, (sockaddr*)&hostSocketAddress, sizeof(sockaddr_in));
+	// -------------------------------------------------------------------------------- //
 
-	//sockaddr_in testHostAddress
+	int serverSize = sizeof(sockaddr_in);
 
 
-	char message[256];
-
+	// ---------------------------- Setting up file descriptor sets ---------------------------- //
 	fd_set readable;
 	fd_set writable;
 	fd_set master_set;
@@ -63,49 +69,24 @@ int main()
 	FD_ZERO(&master_set);
 
 	FD_SET(m_hostSocket, &master_set);
+	// ----------------------------------------------------------------------------------------- //
 
-	int serverSize = sizeof(sockaddr_in);
 
-
-	
-
-	sockaddr_in hostSocketAddress;
-	hostSocketAddress.sin_port = 0; // trying to get a ephemeral port.
-	hostSocketAddress.sin_family = AF_INET;
-	hostSocketAddress.sin_addr.S_un.S_addr = htonl(INADDR_ANY); // trying to get a wild card ip address.
-
-	bind(m_hostSocket, (sockaddr*)&hostSocketAddress, sizeof(sockaddr_in));
-	int hostSocketSize = sizeof(sockaddr_in);
-	getsockname(m_hostSocket, (sockaddr*)&hostSocketAddress, &hostSocketSize);
-
-	char ipPrintable[256];
-	if (inet_ntop(AF_INET, (sockaddr*)&hostSocketAddress.sin_addr.S_un.S_addr, &ipPrintable[0], 256) == NULL)
-	{
-		std::cout << "error occured with inet_ntop()" << std::endl;
-	}
-	std::cout << "======================== CLIENT SETTINGS ========================" << std::endl;
-	std::cout << "IP Address: " << ipPrintable << std::endl;
-	std::cout << "Port Number: " << ntohs(hostSocketAddress.sin_port) << std::endl;
-	std::cout << "=================================================================" << std::endl;
-
+	DisplaySocketAddress(m_hostSocket);
 	
 
 
+	// --------------------------- Creating new thread for input handling --------------------------- //
 	std::string messageBuffer;
 	std::thread inputHandler = std::thread(HandleInput, messageBuffer, (sockaddr*)&serverAddress);
+	// ---------------------------------------------------------------------------------------------- //
 
-	//sockaddr_in testAddress;
-	//int testAddressSize;
-	//getsockname(m_hostSocket, (sockaddr*)&sockaddr_in, )
-
-	//std::cout << "HOST PORT: " << 
 	
 
 	timeval tv;
 	tv.tv_sec = 5;
 	tv.tv_usec = 0;
 
-	char recvBuffer[256] = "hellllo?";
 	std::string inputBuffer;
 	while (true)
 	{
@@ -114,6 +95,8 @@ int main()
 		if (select(m_hostSocket, &readable, NULL, NULL, &tv) == -1) // =============== Currently using select as a way to poll both sending and receiving functions. =============== //
 		{
 			std::cout << "An error occured with select()." << std::endl;
+			int error = WSAGetLastError();
+			std::cout << "Error code: " << error << std::endl;
 		}
 
 		if (FD_ISSET(m_hostSocket, &readable))
@@ -130,20 +113,11 @@ int main()
 			else if (recvResult == -1)
 			{
 				std::cout << "error occured in recvfrom()." << std::endl;
+				int errorcode = WSAGetLastError();
 			}
 
 		}
-		//if (FD_ISSET(m_hostSocket, &writable))
-		//{
-		//	
-		//	// we have stuff to write.
-		//	char sendBuffer[256];
-		//	std::cin >> sendBuffer;
-		//	if (sendto(m_hostSocket, &sendBuffer[0], 256, 0, (sockaddr*)&serverAddress, sizeof(serverAddress)) == -1)
-		//	{
-		//		std::cerr << "error occured in sendto()" << std::endl;
-		//	}
-		//}
+		
 		else
 		{
 			//std::cout << "Reading and writing is not ready." << std::endl;
@@ -151,15 +125,65 @@ int main()
 		
 	}
 
-	
-
-	
-
-
-
 	WSACleanup();
 
 	system("pause");
 
 	return 0;
+}
+
+void DisplayStartupInfo(ULONG& address, USHORT& port)
+{
+	char input[256];
+
+	bool isInputRunning = true;
+
+	std::cout << "================================== CLIENT ==================================" << std::endl;
+	while (isInputRunning)
+	{
+		std::cout << "ENTER SERVER IP: ";
+		std::cin >> input;
+		if (inet_pton(AF_INET, &input[0], &address) == 0) // address is an out param and we are returning the typed in IP address into it.
+		{
+			std::cout << "Error occured with inet_pton in DisplayStartupInfo()" << std::endl;
+			continue; // asking them to type it in again incase they entered something incorrectly.
+		}
+
+		std::cout << "ENTER SERVER PORT: ";
+		std::cin >> input;
+		int inputNumerical;
+		try
+		{
+			inputNumerical = std::stoi(input);
+		}
+		catch (...)
+		{
+			continue; // asking them to redo the input stuff because they entered something incorrectly.
+		}
+		port = htons(inputNumerical); // assigning the typed in port but in network endianness to the passed in port parameter.
+		std::cout << "============================================================================" << std::endl;
+		std::cout << "Setting successfully entered." << std::endl;
+		isInputRunning = false;
+	}
+
+
+}
+
+void DisplaySocketAddress(SOCKET socket)
+{
+	sockaddr_in socketAddress;
+	int addressSize = sizeof(sockaddr_in);
+	getsockname(socket, (sockaddr*)&socketAddress, &addressSize);
+
+
+	char ipPrintable[256];
+
+	if (inet_ntop(AF_INET, &socketAddress.sin_addr.S_un.S_addr, &ipPrintable[0], 256) == NULL)
+	{
+		std::cout << "Error occured on inet_ntop in DisplaySocketAddress()." << std::endl;
+	}
+	std::cout << "======================== CLIENT SETTINGS ========================" << std::endl;
+	std::cout << "IP Address: " << ipPrintable << std::endl;
+	std::cout << "Port Number: " << ntohs(socketAddress.sin_port) << std::endl;
+	std::cout << "=================================================================" << std::endl;
 }

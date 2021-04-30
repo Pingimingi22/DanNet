@@ -11,3 +11,6 @@
 
 
 SOCKET m_hostSocket;
+
+void DisplayStartupInfo(ULONG& address, USHORT& port);
+void DisplaySocketAddress(SOCKET socket);
