@@ -10,7 +10,7 @@ void HandleInput(std::string messageBuffer, sockaddr* serverAddress) // ========
 		std::string testBuffer;
 	    std::getline(std::cin, testBuffer);
 
-		int sendResult;
+		int sendResult = 0;
 
 		if(testBuffer.size() > 0) // making sure the buffer is greater than zero so we don't accidentally send nothing.
 			sendResult = sendto(m_hostSocket, &testBuffer[0], 256, 0, (sockaddr*)serverAddress, sizeof(sockaddr_in));
@@ -78,6 +78,10 @@ int main()
 
 	DisplaySocketAddress(m_hostSocket);
 	
+
+	// testing sending something
+	unsigned int testByte = 5;
+	sendto(m_hostSocket, (char*)&testByte, sizeof(testByte), 0, (sockaddr*)&serverAddress, sizeof(sockaddr_in));
 
 
 	// --------------------------- Creating new thread for input handling --------------------------- //

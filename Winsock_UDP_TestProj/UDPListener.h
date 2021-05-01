@@ -19,7 +19,6 @@ public:
 
 	void Update();
 
-	void const Send(const char* buffer);
 	void const Receive(const char* buffer);
 
 	void DisplaySettings();

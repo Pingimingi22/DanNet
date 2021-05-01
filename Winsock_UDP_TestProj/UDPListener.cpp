@@ -108,7 +108,7 @@ void UDPListener::Update()
 			std::cout << "Received message." << std::endl;
 			std::string receivedString = recvBuffer;
 			
-			incomingPacket.Read(1024);
+			incomingPacket.Write(1024);
 			
 			MessageIdentifier packetIdentifier = incomingPacket.GetPacketIdentifier();
 			std::cout << "Message packet identifier: " << packetIdentifier << std::endl;
@@ -124,12 +124,6 @@ void UDPListener::Update()
 		//std::cout << "UDPListener timeout." << std::endl;
 	}
 
-}
-
-void const UDPListener::Send(const char* buffer)
-{
-	// hardcoding buffer length to 256, this will be changed to allow for dynamic sized things to be sent.
-	//sendto(m_hostSocket, buffer, 256, 0, (sockaddr*))
 }
 
 void const UDPListener::Receive(const char* buffer)

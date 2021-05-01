@@ -17,6 +17,10 @@ public:
 
 	Packet GetCurrentPacket();
 
+	void Send(Packet packet);
+	void SendReliable(Packet packet);
+
+
 	void Update();
 
 private:

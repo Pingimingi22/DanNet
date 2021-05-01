@@ -12,9 +12,15 @@ public:
 	void Send();
 	void SendReliable();
 
-	void Read(int howManyBytes);
+	void Write(int howManyBytes);
 
 	MessageIdentifier GetPacketIdentifier(); // Only to be used after one byte has been read from the packet.
+
+	/// <summary>
+	/// Serialize() serializes a struct into the m_allBytes char array.
+	/// </summary>
+	/// <param name="structToSerialize">Pass in the struct you want to serialize.</param>
+	void Serialize(void* structToSerialize);
 
 
 private:

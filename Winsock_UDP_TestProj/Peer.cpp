@@ -41,6 +41,25 @@ Packet Peer::GetCurrentPacket()
 	return Packet();
 }
 
+void Peer::Send(Packet packet)
+{
+	struct TestStruct
+	{
+		int hi = 1;
+		int bye = 2;
+	};
+
+	TestStruct test;
+
+	Packet testPacket;
+
+}
+
+void Peer::SendReliable(Packet packet)
+{
+	// TODO actually make this thing.
+}
+
 void Peer::Update()
 {
 	while (m_udpListener.IsRunning())

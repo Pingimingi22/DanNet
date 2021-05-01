@@ -21,20 +21,26 @@ void Packet::SendReliable()
 {
 }
 
-void Packet::Read(int howManyBytes)
+void Packet::Write(int howManyBytes)
 {
-	m_readBytes->read(&m_allBytes[0], howManyBytes);
+	m_readBytes->write(m_allBytes, howManyBytes);
 }
 
 MessageIdentifier Packet::GetPacketIdentifier()
 {
 	int length = m_readBytes->str().length();
 	assert(m_readBytes->str().length() > 0); // Making sure that we've atleast ready *something* in. This is really bad error checking but I guess it's better than nothing.
-	char identifier;
-	identifier = m_readBytes->str().at(1);
+	unsigned int identifier = 0;
+	m_readBytes->read((char*)&identifier, sizeof(char)); // sizeof char because char's are 1 byte.
 
 	int identifierNumeric = int(identifier);
 
 	return (MessageIdentifier)identifierNumeric;
+
+}
+
+void Packet::Serialize(void* structToSerialize)
+{
+	
 
 }
