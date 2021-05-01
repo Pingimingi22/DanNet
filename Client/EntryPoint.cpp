@@ -8,8 +8,12 @@ void HandleInput(std::string messageBuffer, sockaddr* serverAddress) // ========
 	while (true)
 	{
 		std::string testBuffer;
-		std::getline(std::cin, testBuffer);
-		int sendResult = sendto(m_hostSocket, &testBuffer[0], 256, 0, (sockaddr*)serverAddress, sizeof(sockaddr_in));
+	    std::getline(std::cin, testBuffer);
+
+		int sendResult;
+
+		if(testBuffer.size() > 0) // making sure the buffer is greater than zero so we don't accidentally send nothing.
+			sendResult = sendto(m_hostSocket, &testBuffer[0], 256, 0, (sockaddr*)serverAddress, sizeof(sockaddr_in));
 
 		sockaddr_in hostSocketAddress;
 		int hostSocketAddressSize = sizeof(sockaddr_in);
