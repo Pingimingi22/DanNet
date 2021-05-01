@@ -30,7 +30,7 @@ void HandleInput(std::string inputBuffer)
 		}
 
 		std::cout << inputBuffer << std::endl;
-		//sendto()
+		
 	}
 }
 
@@ -49,7 +49,7 @@ int main()
 		std::cout << "Error occured on WSAStartup()." << std::endl;
 	}
 
-	UDPListener testListener = UDPListener("*", "25565");
+	UDPListener testListener = UDPListener("25565", "*");
 	testListener.Start();
 	while (testListener.IsRunning())
 	{

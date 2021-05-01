@@ -1,48 +1,69 @@
 #include "UDPListener.h"
 #include <iostream>
 
-UDPListener::UDPListener(std::string ipAddress, std::string portNumber)
+#include "Packet.h"
+
+UDPListener::UDPListener(std::string portNumber, std::string ipAddress)
 {
-	sockaddr_in servAddress;
-	memset(&servAddress, 0, sizeof(sockaddr_in));
+	sockaddr_in hostAddress;
+	memset(&hostAddress, 0, sizeof(sockaddr_in));
 
-	memset(&m_tempClientSize, 0, sizeof(sockaddr));
+	hostAddress.sin_family = AF_INET;
 
-	servAddress.sin_family = AF_INET;
-	servAddress.sin_port = htons(std::stoi(portNumber.c_str()));
-    //servAddress.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-	//servAddress.sin_addr.S_un.S_addr;
-	//inet_pton(AF_INET, "10.17.33.83", (sockaddr*)&servAddress.sin_addr.S_un.S_addr);
+	// --------------- Whether they pass in a port or not kind of defines whether they want a client or a server. ------------------ //
+	// If they pass a port in, that means they want their specific application to be listenining on a special "known" port. Which is what servers usually do.
+	// However, if they don't set a port, it probably means they want to listen in general to any incoming messages, like what a client would do.
+	// ----------------------------------------------------------------------------------------------------------------------------- //
 
+	try
+	{
+		USHORT port = std::stoi(portNumber);
+		hostAddress.sin_port = htons(std::stoi(portNumber.c_str()));
+	}
+	catch (...)
+	{
+		// this means the passed in port wasn't able to convert. For now we'll just make it so the socket picks an ephemeral port to listen on, thereby making it a client.
+		// also we wont bother setting the port to a wildcard thing because I think if I just leave that part of the sockaddr_in struct empty, the kernel will automatically chose an emphemeral port.
+	}
+
+
+	// ----------------------- If they've passed in an approriate IPv4 address, we try convert it. ----------------------- //
+	// Also, they probably wont ever wont to pass in an IP address as that limits the socket to what it can listen to.
+	// Usually you want the kernal to chose an appropriate IP address for the socket.
+		
+	int ipConversionResult = inet_pton(AF_INET, ipAddress.c_str(), &hostAddress.sin_addr.S_un.S_addr);                    // The reason we don't have an else statement initialising the variable is
+	if (ipConversionResult == 0 || ipConversionResult == -1)															  // because inet_pton() has an out return param that does it for us.
+	{
+		std::cout << "UDPListener received an address that was not able to be converted." << std::endl;
+		hostAddress.sin_addr.S_un.S_addr = INADDR_ANY;
+	}
+
+
+	// ---------------------- Creating the host socket. ---------------------- // 
 	m_hostSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (m_hostSocket == INVALID_SOCKET)
 	{
 		std::cout << "Error on UDPListener socket()." << std::endl;
 	}
-	
-	int result = bind(m_hostSocket, (sockaddr*)&servAddress, sizeof(servAddress));
+	// ------------------------- Binding the socket. ------------------------- //
+	int result = bind(m_hostSocket, (sockaddr*)&hostAddress, sizeof(hostAddress));
 	if (result == -1)
 	{
 		std::cout << "Error on UDPListener bind()" << std::endl;
 	}
 
+	
+	//memset(&m_tempClientSize, 0, sizeof(sockaddr)); =============================== NOTE THIS MAY HAVE BEEN IMPORTANT =============================== 
+
+	
+	// ------------------------ Zeroing out and setting up the FD sets. ------------------------ // 
 	FD_ZERO(&m_master);
 	FD_ZERO(&m_readReady);
 
 	FD_SET(m_hostSocket, &m_master);
 
-	sockaddr_in testServerAddress;
-	int testServerAddressSize = sizeof(sockaddr_in);
-	getsockname(m_hostSocket, (sockaddr*)&testServerAddress, &testServerAddressSize);
 
-
-	char testServerIP[256];
-	inet_ntop(AF_INET, (sockaddr*)&testServerAddress, &testServerIP[0], 256);
-
-	std::cout << "======================== SERVER SETTINGS ========================" << std::endl;
-	std::cout << "IP Address: " << testServerIP << std::endl;
-	std::cout << "Port Number: " << ntohs(testServerAddress.sin_port) << std::endl;
-	std::cout << "=================================================================" << std::endl;
+	DisplaySettings();
 }
 
 void UDPListener::Start()
@@ -73,70 +94,24 @@ void UDPListener::Update()
 	if (FD_ISSET(m_hostSocket, &m_readReady))
 	{
 		char recvBuffer[256];
+		Packet incomingPacket = Packet();
 
 
-		m_tempClientSize = sizeof(sockaddr_in); 
-		int result = recvfrom(m_hostSocket, &recvBuffer[0], 256, 0, (sockaddr*)&m_tempClient, &m_tempClientSize);
+		// temporary cache of incoming client address.
+		sockaddr_in incomingClientAddress;
+		int incomingClientSize;
+		incomingClientSize = sizeof(sockaddr_in); 
+
+		int result = recvfrom(m_hostSocket, &incomingPacket.m_allBytes[0], 1024, 0, (sockaddr*)&incomingClientAddress, &incomingClientSize);
 		if (result > 0)
 		{
-			std::cout << "Received message: " << recvBuffer << std::endl;
+			std::cout << "Received message." << std::endl;
 			std::string receivedString = recvBuffer;
-			if (receivedString == "connection_request")
-			{
-				std::cout << "client connection request received." << std::endl;
-				SOCKET newClientSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-				if (newClientSocket == -1)
-				{
-					std::cout << "An error occured when trying to create a socket for a connecting client." << std::endl;
-				}
-				if (bind(newClientSocket, (sockaddr*)&m_tempClient, m_tempClientSize) == -1)
-				{
-					std::cout << "An error occured when trying to bind the newly created client." << std::endl;
-				}
-				else
-				{
-					short port = ntohs(m_tempClient.sin_port);
-					m_connectedClients.push_back(newClientSocket);
-				}
-
-				
-			}
-			if (receivedString == "request_hello")
-			{
-				std::cout << "client connection requested a hello." << std::endl;
-				for (int i = 0; i < m_connectedClients.size(); i++)
-				{
-
-					sockaddr_in tempAddress;
-					int tempSize = sizeof(sockaddr_in);
-					getsockname(m_connectedClients[i], (sockaddr*)&tempAddress, &tempSize);
-					if (tempAddress.sin_addr.S_un.S_addr == m_tempClient.sin_addr.S_un.S_addr)
-					{
-						// found the connected client to return a message to.
-						char helloMessage[256] = "hello!";
-						if (sendto(m_hostSocket, &helloMessage[0], 256, 0, (sockaddr*)&tempAddress, tempSize) == -1)
-						{
-							std::cout << "Error occured when trying to send a hello message to the client." << std::endl;
-							
-							break;
-						}
-						else
-						{
-							char testIP[256];
-							short testPort = tempAddress.sin_port;
-							inet_ntop(AF_INET, (sockaddr*)&tempAddress.sin_addr.S_un.S_addr, &testIP[0], 256);
-							testPort = ntohs(tempAddress.sin_port);
-							std::cout << "Client IP: " << testIP << " : " << "Port: " << htons(tempAddress.sin_port) << std::endl;
-							std::cout << "Sent client a hello." << std::endl;
-						}
-						break;
-					}
-
-					
-				}
-
-
-			}
+			
+			incomingPacket.Read(1024);
+			
+			MessageIdentifier packetIdentifier = incomingPacket.GetPacketIdentifier();
+			std::cout << "Message packet identifier: " << packetIdentifier << std::endl;
 		}
 		else if (result == -1)
 		{
@@ -160,6 +135,21 @@ void const UDPListener::Send(const char* buffer)
 void const UDPListener::Receive(const char* buffer)
 {
 	//return nullptr;
+}
+
+void UDPListener::DisplaySettings()
+{
+	sockaddr_in tempAddress;
+	int tempAddressSize = sizeof(sockaddr_in);
+	getsockname(m_hostSocket, (sockaddr*)&tempAddress, &tempAddressSize); // Getting the information from the host socket so that we can display it to the user.
+
+	char thisIPString[256];
+	inet_ntop(AF_INET, (sockaddr*)&tempAddress.sin_addr.S_un.S_addr, &thisIPString[0], 256);
+
+	std::cout << "======================== SETTINGS ========================" << std::endl;
+	std::cout << "IP Address: " << thisIPString << std::endl;
+	std::cout << "Port Number: " << ntohs(tempAddress.sin_port) << std::endl;
+	std::cout << "=================================================================" << std::endl;
 }
 
 bool UDPListener::IsRunning()

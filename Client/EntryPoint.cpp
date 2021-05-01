@@ -77,6 +77,7 @@ int main()
 
 
 	// --------------------------- Creating new thread for input handling --------------------------- //
+	std::cout << "Input thread start." << std::endl;
 	std::string messageBuffer;
 	std::thread inputHandler = std::thread(HandleInput, messageBuffer, (sockaddr*)&serverAddress);
 	// ---------------------------------------------------------------------------------------------- //
