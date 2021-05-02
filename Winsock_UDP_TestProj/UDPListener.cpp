@@ -114,7 +114,7 @@ void UDPListener::Update()
 	if (FD_ISSET(m_hostSocket, &m_readReady))
 	{
 		char recvBuffer[256];
-		Packet incomingPacket = Packet();
+		Packet* incomingPacket = new Packet();
 
 
 		// temporary cache of incoming client address.
@@ -122,7 +122,7 @@ void UDPListener::Update()
 		int incomingClientSize;
 		incomingClientSize = sizeof(sockaddr_in); 
 
-		int result = recvfrom(m_hostSocket, &incomingPacket.m_allBytes[0], 1024, 0, (sockaddr*)&incomingClientAddress, &incomingClientSize);
+		int result = recvfrom(m_hostSocket, &incomingPacket->m_allBytes[0], 1024, 0, (sockaddr*)&incomingClientAddress, &incomingClientSize);
 		if (result > 0)
 		{
 			//std::cout << "Received message." << std::endl;
@@ -144,8 +144,16 @@ void UDPListener::Update()
 			//incomingPacket.Deserialize(hi, byte, alpha, idk1, idk2, fin);
 			
 			TestStruct testingReadingIn;
-			incomingPacket.Deserialize(testingReadingIn.hello, testingReadingIn.goodbye, testingReadingIn.test1, testingReadingIn.test2, testingReadingIn.test3); // mwhahaha my multiple param any type verdaic function ! >:)
+			incomingPacket->Deserialize(testingReadingIn.hello, testingReadingIn.goodbye, testingReadingIn.test1, testingReadingIn.test2, testingReadingIn.test3); // mwhahaha my multiple param any type verdaic function ! >:)
 			std::cout << testingReadingIn.goodbye;
+
+			if (m_attachedPeer->m_currentPacket != nullptr)
+			{
+				delete m_attachedPeer->m_currentPacket;
+				m_attachedPeer->m_currentPacket = nullptr;                // This is the only place I'm freeing up the memory of m_currentPacket. So there wont be that bad of a memory leak since every time we receive
+			}															  // a new packet, it will delete the old one.
+
+			m_attachedPeer->m_currentPacket = incomingPacket; // ------------------------> Telling the attached peer that we have received a packet. The user can do what they like with it.
 			//incomingPacket.Write(1024);
 			//
 			//MessageIdentifier packetIdentifier = incomingPacket.GetPacketIdentifier();
@@ -153,8 +161,16 @@ void UDPListener::Update()
 		}
 		else if (result == -1)
 		{
+			delete incomingPacket;
+
 			std::cerr << "UDPListener recvfrom() error." << std::endl;
 
+		}
+		else if (result == 0)
+		{
+			delete incomingPacket;
+
+			// i'm not exactly sure what 0 means but i do know that it means we havn't received any bytes.
 		}
 	}
 	else
@@ -182,9 +198,9 @@ void UDPListener::Send(Packet packet)
 	}
 }
 
-void UDPListener::SendReliable(Packet packet)
-{
-}
+//void UDPListener::SendReliable(Packet packet)
+//{
+//}
 
 void UDPListener::DisplaySettings()
 {

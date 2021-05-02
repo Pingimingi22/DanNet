@@ -20,50 +20,50 @@
 
 
 
-void HandleInput(std::string inputBuffer)
-{
-	bool inputIsRunning = true;
-
-	while (inputIsRunning)
-	{
-		std::getline(std::cin, inputBuffer);
-
-		if (inputBuffer == "exit")
-		{
-			std::cout << "Closing program.";
-			return;
-		}
-
-		std::cout << inputBuffer << std::endl;
-		
-	}
-}
-
-
-int main()
-{
-
-	// ------------- Testing make a new thread. ------------- //
-	std::string inputBuffer;
-	std::thread testThread = std::thread(HandleInput, inputBuffer);
-
-	WSADATA wsadata;
-	int result = WSAStartup(MAKEWORD(2, 2), &wsadata);
-	
-	if (result != 0)
-	{
-		std::cout << "Error occured on WSAStartup()." << std::endl;
-	}
-
-	UDPListener testListener = UDPListener("25565", "*");
-	testListener.Start();
-	while (testListener.IsRunning())
-	{
-		testListener.Update();
-	}
-
-	WSACleanup();
-
-	return 0;
-
-}
+//void HandleInput(std::string inputBuffer)
+//{
+//	bool inputIsRunning = true;
+//
+//	while (inputIsRunning)
+//	{
+//		std::getline(std::cin, inputBuffer);
+//
+//		if (inputBuffer == "exit")
+//		{
+//			std::cout << "Closing program.";
+//			return;
+//		}
+//
+//		std::cout << inputBuffer << std::endl;
+//		
+//	}
+//}
+//
+//
+//int main()
+//{
+//
+//	// ------------- Testing make a new thread. ------------- //
+//	std::string inputBuffer;
+//	std::thread testThread = std::thread(HandleInput, inputBuffer);
+//
+//	WSADATA wsadata;
+//	int result = WSAStartup(MAKEWORD(2, 2), &wsadata);
+//	
+//	if (result != 0)
+//	{
+//		std::cout << "Error occured on WSAStartup()." << std::endl;
+//	}
+//
+//	//UDPListener testListener = UDPListener("25565", "*");
+//	//testListener.Start();
+//	//while (testListener.IsRunning())
+//	//{
+//	//	testListener.Update();
+//	//}
+//
+//	WSACleanup();
+//
+//	return 0;
+//
+//}

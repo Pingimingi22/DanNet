@@ -9,7 +9,7 @@
 
 #include <assert.h>
 
-Peer::Peer(bool server = false, unsigned short portNumber = NULL)
+Peer::Peer(bool server, unsigned short portNumber)
 {
 	if (server)
 	{
@@ -23,16 +23,27 @@ Peer::Peer(bool server = false, unsigned short portNumber = NULL)
 
 Peer Peer::CreatePeer(bool server, unsigned short portNumber)
 {
+	Peer whatev;
 	// eh maybe i'll make this a thing one day. The constructor is fine for now.
+	return whatev;
 }
 
 void Peer::StartPeer()
 {
+	WSADATA wsadata;
+	int result = WSAStartup(MAKEWORD(2, 2), &wsadata);
+
+	if (result != 0)
+	{
+		std::cout << "Error occured on WSAStartup()" << std::endl;
+	}
+
 	m_udpListener.Start();
 }
 
 void Peer::ShutdownPeer()
 {
+	WSACleanup();
 }
 
 /// <summary>
@@ -60,14 +71,19 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 /// ReceivePacket() will return null if no packet has been received. Otherwise it returns a packet.
 /// </summary>
 /// <returns></returns>
-char* Peer::UDPReceiveBytes()
+Packet* Peer::UDPReceivePacket()
 {
-	
+	if (m_currentPacket == nullptr)
+		return nullptr;
+
+	// if the udp listener has given us a real packet, we can give the user that.
+	return m_currentPacket;
 }
 
 void Peer::UDPSend(Packet packet)
 {
-	//m_udpListener.Send(packet);
+	//Packet newPacket;
+	//m_udpListener.Send(newPacket);
 }
 
 void Peer::UDPSendReliable(Packet packet)

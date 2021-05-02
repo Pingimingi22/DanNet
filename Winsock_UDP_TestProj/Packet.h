@@ -8,6 +8,9 @@
 
 #include "cereal/cereal.hpp"
 #include "cereal/archives/binary.hpp"
+
+
+
 class Packet
 {
 public:
@@ -37,7 +40,7 @@ public:
 		cereal::BinaryInputArchive iarchive(m_recursiveStream);
 		iarchive(t);
 		//std::cout << 1 << std::endl;
-		m_recursiveStream.clear();
+		m_recursiveStream.clear();	
 	}
 
 	template<typename T, typename... Args>

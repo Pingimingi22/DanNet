@@ -6,6 +6,8 @@
 #include "cereal/cereal.hpp"
 #include "cereal/archives/binary.hpp"
 
+#include "Peer.h"
+
 // DELETE THIS LATER.
 struct TestStruct
 {
@@ -77,7 +79,7 @@ int main()
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2, 2), &wsadata);
 
-
+	
 
 	// -------------------------------- Setting up server address -------------------------------- //
 	sockaddr_in serverAddress;

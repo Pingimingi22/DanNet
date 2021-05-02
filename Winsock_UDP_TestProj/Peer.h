@@ -2,6 +2,7 @@
 
 #include <string>
 #include "UDPListener.h"
+#include <sstream>
 
 
 class UDPListener;
@@ -18,7 +19,7 @@ public:
 
 	void Connect(std::string ipAddress, unsigned short portNumber);
 
-	char* UDPReceiveBytes();
+	Packet* UDPReceivePacket();
 
 	void UDPSend(Packet packet);
 	void UDPSendReliable(Packet packet);
@@ -33,4 +34,7 @@ private:
 
 	// Only to be set if the peer is a client.
 	sockaddr_in m_serverConnection;
+
+
+	Packet* m_currentPacket = nullptr;
 };
