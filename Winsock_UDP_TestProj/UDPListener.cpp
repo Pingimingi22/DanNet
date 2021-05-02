@@ -5,6 +5,9 @@
 
 #include "cereal/cereal.hpp"
 #include "cereal/archives/binary.hpp"
+
+#include "Peer.h"
+
 // DELETE THIS LATER.
 struct TestStruct
 {
@@ -15,9 +18,9 @@ struct TestStruct
 	int test3 = 0;
 };
 
-UDPListener::UDPListener(std::string portNumber, std::string ipAddress)
+UDPListener::UDPListener(Peer* attachedPeer, std::string portNumber, std::string ipAddress)
 {
-	
+	m_attachedPeer = attachedPeer;
 
 	sockaddr_in hostAddress;
 	memset(&hostAddress, 0, sizeof(sockaddr_in));
@@ -164,6 +167,23 @@ void UDPListener::Update()
 void const UDPListener::Receive(const char* buffer)
 {
 	//return nullptr;
+}
+
+void UDPListener::Send(Packet packet)
+{
+	int sendResult = sendto(m_hostSocket, packet.m_allBytes, 1024, 0, (sockaddr*)&m_attachedPeer->m_serverConnection, sizeof(sockaddr_in));
+	if (sendResult == -1)
+	{
+		std::cout << "An error occured when trying to send a message." << std::endl;
+	}
+	else if (sendResult > 0)
+	{
+		std::cout << "Successfully sent out [" << sendResult << "] bytes." << std::endl;
+	}
+}
+
+void UDPListener::SendReliable(Packet packet)
+{
 }
 
 void UDPListener::DisplaySettings()

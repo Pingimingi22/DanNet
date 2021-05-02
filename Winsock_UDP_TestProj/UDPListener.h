@@ -3,16 +3,19 @@
 #include <string>
 #include <vector>
 
-
+class Peer;
+class Packet;
 
 /// <summary>
 /// Right now this UDPListener will only support IPv4.
 /// </summary>
 class UDPListener
 {
+
 public:
-	//UDPListener();
-	UDPListener(std::string portNumber = "", std::string ipAddress = "");
+	//friend class Peer;
+	UDPListener() {};
+	UDPListener(Peer* attachedPeer, std::string portNumber = "", std::string ipAddress = "");
 
 	void Start();
 	void Close();
@@ -40,5 +43,7 @@ private:
 	fd_set m_master;
 	fd_set m_writeReady;
 	fd_set m_readReady;
+
+	Peer* m_attachedPeer;
 	
 };

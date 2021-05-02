@@ -10,12 +10,15 @@ class Packet;
 class Peer
 {
 public:
-	Peer();
+	friend class UDPListener;
+	Peer(bool server = false, unsigned short portNumber = NULL);
 	Peer CreatePeer(bool server = false, unsigned short portNumber = NULL); // i guess this is gonna be a factory method.
 	void StartPeer();
 	void ShutdownPeer();
 
-	Packet GetCurrentPacket();
+	void Connect(std::string ipAddress, unsigned short portNumber);
+
+	char* UDPReceiveBytes();
 
 	void UDPSend(Packet packet);
 	void UDPSendReliable(Packet packet);
@@ -27,4 +30,7 @@ private:
 	bool m_isServer = false;
 	UDPListener m_udpListener;
 	SOCKET m_hostSocket;
+
+	// Only to be set if the peer is a client.
+	sockaddr_in m_serverConnection;
 };
