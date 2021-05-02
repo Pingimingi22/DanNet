@@ -15,6 +15,11 @@
 #include <thread>
 #include <string>
 
+#include "cereal/cereal.hpp"
+#include "cereal/archives/binary.hpp"
+
+
+
 void HandleInput(std::string inputBuffer)
 {
 	bool inputIsRunning = true;
@@ -37,6 +42,7 @@ void HandleInput(std::string inputBuffer)
 
 int main()
 {
+
 	// ------------- Testing make a new thread. ------------- //
 	std::string inputBuffer;
 	std::thread testThread = std::thread(HandleInput, inputBuffer);

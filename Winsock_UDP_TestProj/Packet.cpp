@@ -5,6 +5,9 @@
 
 #include <iostream>
 
+#include "cereal/cereal.hpp"
+#include "cereal/archives/binary.hpp"
+
 Packet::Packet()
 {
 }
@@ -36,11 +39,5 @@ MessageIdentifier Packet::GetPacketIdentifier()
 	int identifierNumeric = int(identifier);
 
 	return (MessageIdentifier)identifierNumeric;
-
-}
-
-void Packet::Serialize(void* structToSerialize)
-{
-	
 
 }

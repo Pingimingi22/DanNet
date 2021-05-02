@@ -9,22 +9,21 @@
 
 #include <assert.h>
 
-Peer::Peer()
-{
-}
-
-Peer Peer::CreatePeer(bool server, unsigned short portNumber)
+Peer::Peer(bool server = false, unsigned short portNumber = NULL)
 {
 	if (server)
 	{
 		server = true;
-		assert(portNumber != NULL); // If they pass in 0 for the port, that's an error.
+		assert(portNumber != NULL); // If they pass in 0 for the port, that's an error. because server's need well known ports.
 
 		m_udpListener = UDPListener("*", std::to_string(portNumber));
 	}
 
-	Peer ehtestpeer;	// ======================== TODO actually make this a thing ======================== // 
-	return ehtestpeer;
+}
+
+Peer Peer::CreatePeer(bool server, unsigned short portNumber)
+{
+	// eh maybe i'll make this a thing one day. The constructor is fine for now.
 }
 
 void Peer::StartPeer()
@@ -41,21 +40,12 @@ Packet Peer::GetCurrentPacket()
 	return Packet();
 }
 
-void Peer::Send(Packet packet)
+void Peer::UDPSend(Packet packet)
 {
-	struct TestStruct
-	{
-		int hi = 1;
-		int bye = 2;
-	};
-
-	TestStruct test;
-
-	Packet testPacket;
-
+	//int sendResult = sendto(m_hostSocket)
 }
 
-void Peer::SendReliable(Packet packet)
+void Peer::UDPSendReliable(Packet packet)
 {
 	// TODO actually make this thing.
 }

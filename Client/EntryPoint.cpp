@@ -3,6 +3,49 @@
 #include <thread>
 #include <string>
 
+#include "cereal/cereal.hpp"
+#include "cereal/archives/binary.hpp"
+
+// DELETE THIS LATER.
+struct TestStruct
+{
+	int hello = 5;
+	int goodbye = 2;
+	int test1 = 9;
+	int test2 = 8;
+	int test3 = 7;
+};
+
+
+std::stringstream m_recursiveStream;
+char m_allBytes[1024];
+
+template<typename T>
+void Serialize(T& t)
+{
+	cereal::BinaryOutputArchive outputArchive(m_recursiveStream);
+	outputArchive(t);
+
+	m_recursiveStream.read(&m_allBytes[0], 1024);
+	m_recursiveStream.clear();
+}
+
+/// <summary>
+/// Serialize() serializes a struct into the m_allBytes char array.
+/// </summary>
+/// <param name="structToSerialize">Pass in the struct you want to serialize.</param>
+template<typename T, typename... Args>
+void Serialize(T& first, Args& ... args)
+{
+	cereal::BinaryOutputArchive outputArchive(m_recursiveStream);
+
+	outputArchive(first);
+
+	Serialize(args...);
+}
+
+
+
 void HandleInput(std::string messageBuffer, sockaddr* serverAddress) // ================================= ASK WHY SOCKADDR DOESN'T WORK HERE BUT IT DOES EVERYWHERE ELSE.
 {
 	while (true)
@@ -79,9 +122,33 @@ int main()
 	DisplaySocketAddress(m_hostSocket);
 	
 
-	// testing sending something
-	unsigned int testByte = 5;
-	sendto(m_hostSocket, (char*)&testByte, sizeof(testByte), 0, (sockaddr*)&serverAddress, sizeof(sockaddr_in));
+	// sending test message to client.
+
+	//TestStruct test;
+	//
+	//std::stringstream ss;
+	//
+	//cereal::BinaryOutputArchive outputArchive(ss);
+	//
+	//outputArchive(test.hello, test.goodbye, test.test1, test.test2, test.test3);
+	//
+	//char messageToSend[1024];
+	//ss.read(&messageToSend[0], 1024);
+
+	TestStruct test;
+	Serialize(test.hello, test.goodbye, test.test1, test.test2, test.test3);
+
+	int testSendResult = sendto(m_hostSocket, &m_allBytes[0], 1024, 0, (sockaddr*)&serverAddress, sizeof(sockaddr_in));
+	if (testSendResult == -1)
+	{
+		std::cout << "Something went wrong with the test send thing." << std::endl;
+	}
+	else
+	{
+		std::cout << "Successfully sent test message." << std::endl;
+	}
+
+	// ---------------------------------------------------------------- //
 
 
 	// --------------------------- Creating new thread for input handling --------------------------- //

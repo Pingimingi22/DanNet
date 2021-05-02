@@ -17,8 +17,8 @@ public:
 
 	Packet GetCurrentPacket();
 
-	void Send(Packet packet);
-	void SendReliable(Packet packet);
+	void UDPSend(Packet packet);
+	void UDPSendReliable(Packet packet);
 
 
 	void Update();
@@ -26,4 +26,5 @@ public:
 private:
 	bool m_isServer = false;
 	UDPListener m_udpListener;
+	SOCKET m_hostSocket;
 };

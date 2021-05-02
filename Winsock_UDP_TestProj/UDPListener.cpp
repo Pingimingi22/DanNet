@@ -3,8 +3,22 @@
 
 #include "Packet.h"
 
+#include "cereal/cereal.hpp"
+#include "cereal/archives/binary.hpp"
+// DELETE THIS LATER.
+struct TestStruct
+{
+	int hello = 0;
+	int goodbye = 0;
+	int test1 = 0;
+	int test2 = 0;
+	int test3 = 0;
+};
+
 UDPListener::UDPListener(std::string portNumber, std::string ipAddress)
 {
+	
+
 	sockaddr_in hostAddress;
 	memset(&hostAddress, 0, sizeof(sockaddr_in));
 
@@ -64,6 +78,9 @@ UDPListener::UDPListener(std::string portNumber, std::string ipAddress)
 
 
 	DisplaySettings();
+
+
+	
 }
 
 void UDPListener::Start()
@@ -105,13 +122,31 @@ void UDPListener::Update()
 		int result = recvfrom(m_hostSocket, &incomingPacket.m_allBytes[0], 1024, 0, (sockaddr*)&incomingClientAddress, &incomingClientSize);
 		if (result > 0)
 		{
-			std::cout << "Received message." << std::endl;
-			std::string receivedString = recvBuffer;
+			//std::cout << "Received message." << std::endl;
+			//std::string receivedString = recvBuffer;
+			//
+			//std::stringstream ss;
+			//ss.write(&incomingPacket.m_allBytes[0], 1024);
+			//cereal::BinaryInputArchive iarchive(ss);
+			//
+			//TestStruct testReadingIn;
+			//iarchive(testReadingIn.hello, testReadingIn.goodbye);
+			//
+			//int hi = 5;
+			//float byte = 3;
+			//char alpha = 'a';
+			//int idk1 = 2;
+			//int idk2 = 1; 
+			//float fin = 0;
+			//incomingPacket.Deserialize(hi, byte, alpha, idk1, idk2, fin);
 			
-			incomingPacket.Write(1024);
-			
-			MessageIdentifier packetIdentifier = incomingPacket.GetPacketIdentifier();
-			std::cout << "Message packet identifier: " << packetIdentifier << std::endl;
+			TestStruct testingReadingIn;
+			incomingPacket.Deserialize(testingReadingIn.hello, testingReadingIn.goodbye, testingReadingIn.test1, testingReadingIn.test2, testingReadingIn.test3); // mwhahaha my multiple param any type verdaic function ! >:)
+			std::cout << testingReadingIn.goodbye;
+			//incomingPacket.Write(1024);
+			//
+			//MessageIdentifier packetIdentifier = incomingPacket.GetPacketIdentifier();
+			//std::cout << "Message packet identifier: " << packetIdentifier << std::endl;
 		}
 		else if (result == -1)
 		{

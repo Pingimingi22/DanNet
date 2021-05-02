@@ -21,12 +21,15 @@ public:
 
 	void const Receive(const char* buffer);
 
+	void Send(Packet packet);
+	void SendReliable(Packet packet);
+
 	void DisplaySettings();
 
 
 	bool IsRunning();
 private:
-	SOCKET m_hostSocket;
+	SOCKET m_hostSocket; // points to the socket in Peer.h
 
 	std::vector<SOCKET> m_connectedPeers; // This is connected "peer's" because this listener could be listenting to lots of clients if it's the server or it could be listenting to 1 peer (the server).
 									      // the idea is that this UDPListener class will be able to be used for both clients and server's.
