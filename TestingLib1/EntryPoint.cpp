@@ -7,11 +7,17 @@ int main()
 
 	testPeer.StartPeer();
 
-	testPeer.Update();
+	bool isRunning = true;
 
-	Packet* testPacket = testPeer.UDPReceivePacket();
+	while (isRunning)
+	{
+		Packet* testPacket = testPeer.UDPReceivePacket();
+		if(testPacket != nullptr)
+			std::cout << "received message" << std::endl;
+	}
 
-	//testPeer.UDPSend()
+	
+
 
 	return 0;
 }

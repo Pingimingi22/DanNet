@@ -5,9 +5,9 @@
 
 #include "Packet.h"
 
-
-
 #include <assert.h>
+
+#include <thread>
 
 Peer::Peer(bool server, unsigned short portNumber)
 {
@@ -39,25 +39,30 @@ Peer::Peer(bool server, unsigned short portNumber)
 Peer::~Peer()
 {
 	// TODO add WSACleanup stuff properly. i probally have to clean up in other places too.
+	ShutdownPeer();
 	WSACleanup();
 }
 
-Peer Peer::CreatePeer(bool server, unsigned short portNumber)
-{
-	Peer whatev;
-	// eh maybe i'll make this a thing one day. The constructor is fine for now.
-	return whatev;
-}
+//Peer Peer::CreatePeer(bool server, unsigned short portNumber)
+//{
+//	Peer whatev;
+//	// eh maybe i'll make this a thing one day. The constructor is fine for now.
+//	return whatev;
+//}
 
 void Peer::StartPeer()
 {
-	
-
 	m_udpListener.Start();
+
+	m_udpListenerUpdateThread = new std::thread(&Peer::Update, this);
+	//UDPListenerThread.join();
 }
 
 void Peer::ShutdownPeer()
 {
+	m_udpListener.Close();
+	m_udpListenerUpdateThread->join();
+	delete m_udpListenerUpdateThread;
 	WSACleanup();
 }
 

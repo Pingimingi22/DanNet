@@ -3,7 +3,7 @@
 #include <string>
 #include "UDPListener.h"
 #include <sstream>
-
+#include <thread>
 
 class UDPListener;
 class Packet;
@@ -26,10 +26,10 @@ public:
 	void UDPSendReliable(Packet packet);
 
 
-	void Update();
 
 private:
-	Peer CreatePeer(bool server = false, unsigned short portNumber = NULL); // i guess this is gonna be a factory method.
+	void Update();
+	//Peer CreatePeer(bool server = false, unsigned short portNumber = NULL); // i guess this is gonna be a factory method.
 
 
 	bool m_isServer = false;
@@ -41,4 +41,9 @@ private:
 
 
 	Packet* m_currentPacket = nullptr;
+
+
+	// -------------------- Threading stuff -------------------- //
+	// ========================================== ASK FINN ========================================== why does putting this on the stack delete some assignment operator implicitly?
+	std::thread* m_udpListenerUpdateThread = nullptr;
 };
