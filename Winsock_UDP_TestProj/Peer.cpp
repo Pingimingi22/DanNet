@@ -11,14 +11,35 @@
 
 Peer::Peer(bool server, unsigned short portNumber)
 {
+	WSADATA wsadata;
+	int result = WSAStartup(MAKEWORD(2, 2), &wsadata);
+
+	if (result != 0)
+	{
+		std::cout << "Error occured on WSAStartup()" << std::endl;
+	}
+
 	if (server)
 	{
-		server = true;
+		m_isServer = true;
 		assert(portNumber != NULL); // If they pass in 0 for the port, that's an error. because server's need well known ports.
 
 		m_udpListener = UDPListener(this, std::to_string(portNumber), "*");
 	}
+	else
+	{
+		m_isServer = false;
 
+		m_udpListener = UDPListener(this); // since it's the client we don't have to specify a port.
+
+	}
+
+}
+
+Peer::~Peer()
+{
+	// TODO add WSACleanup stuff properly. i probally have to clean up in other places too.
+	WSACleanup();
 }
 
 Peer Peer::CreatePeer(bool server, unsigned short portNumber)
@@ -30,13 +51,7 @@ Peer Peer::CreatePeer(bool server, unsigned short portNumber)
 
 void Peer::StartPeer()
 {
-	WSADATA wsadata;
-	int result = WSAStartup(MAKEWORD(2, 2), &wsadata);
-
-	if (result != 0)
-	{
-		std::cout << "Error occured on WSAStartup()" << std::endl;
-	}
+	
 
 	m_udpListener.Start();
 }

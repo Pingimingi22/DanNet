@@ -13,7 +13,8 @@ class Peer
 public:
 	friend class UDPListener;
 	Peer(bool server = false, unsigned short portNumber = NULL);
-	Peer CreatePeer(bool server = false, unsigned short portNumber = NULL); // i guess this is gonna be a factory method.
+	~Peer();
+
 	void StartPeer();
 	void ShutdownPeer();
 
@@ -28,6 +29,9 @@ public:
 	void Update();
 
 private:
+	Peer CreatePeer(bool server = false, unsigned short portNumber = NULL); // i guess this is gonna be a factory method.
+
+
 	bool m_isServer = false;
 	UDPListener m_udpListener;
 	SOCKET m_hostSocket;

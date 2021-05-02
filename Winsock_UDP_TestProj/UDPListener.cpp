@@ -41,6 +41,9 @@ UDPListener::UDPListener(Peer* attachedPeer, std::string portNumber, std::string
 	{
 		// this means the passed in port wasn't able to convert. For now we'll just make it so the socket picks an ephemeral port to listen on, thereby making it a client.
 		// also we wont bother setting the port to a wildcard thing because I think if I just leave that part of the sockaddr_in struct empty, the kernel will automatically chose an emphemeral port.
+
+		// ok i think i need to say 0 for the port to get an ephemeral port.
+		hostAddress.sin_port = 0;
 	}
 
 
