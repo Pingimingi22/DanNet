@@ -100,10 +100,10 @@ Packet* Peer::UDPReceivePacket()
 	return m_currentPacket;
 }
 
-void Peer::UDPSend(Packet packet)
+void const Peer::UDPSend(Packet& packet)
 {
 	//Packet newPacket;
-	//m_udpListener.Send(newPacket);
+	m_udpListener.Send(packet);
 }
 
 void Peer::UDPSendReliable(Packet packet)

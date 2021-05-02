@@ -24,7 +24,7 @@ public:
 
 	void const Receive(const char* buffer);
 
-	void Send(Packet packet);
+	void Send(Packet& packet);
 	//void SendReliable(Packet packet);
 
 	void DisplaySettings();

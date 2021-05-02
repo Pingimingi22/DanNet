@@ -1,6 +1,12 @@
 #include "Peer.h"
 #include "Packet.h"
 
+struct TestStruct
+{
+	int foo = 1;
+	int bar = 2;
+};
+
 int main()
 {
 	Peer testPeer = Peer();
@@ -9,12 +15,13 @@ int main()
 
 	bool isRunning = true;
 
-	while (isRunning)
-	{
-		Packet* testPacket = testPeer.UDPReceivePacket();
-		if(testPacket != nullptr)
-			std::cout << "received message" << std::endl;
-	}
+	testPeer.Connect("192.168.1.124", 25565);
+
+	Packet testPacket;
+	TestStruct testStruct;
+	testPacket.Serialize(testStruct.foo, testStruct.bar);
+
+	testPeer.UDPSend(testPacket);
 
 	
 

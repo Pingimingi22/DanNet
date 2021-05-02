@@ -22,7 +22,7 @@ public:
 
 	Packet* UDPReceivePacket();
 
-	void UDPSend(Packet packet);
+	void const UDPSend(Packet& packet);
 	void UDPSendReliable(Packet packet);
 
 

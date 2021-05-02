@@ -66,7 +66,7 @@ public:
 		cereal::BinaryOutputArchive outputArchive(m_recursiveStream);
 		outputArchive(t);
 
-		m_recursiveStream.read(&m_allBytes, 1024);
+		m_recursiveStream.read(&m_allBytes[0], 1024);
 		m_recursiveStream.clear();
 	}
 	

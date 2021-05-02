@@ -146,11 +146,11 @@ void UDPListener::Update()
 			//float fin = 0;
 			//incomingPacket.Deserialize(hi, byte, alpha, idk1, idk2, fin);
 			
-			std::cout << "Received a message." << std::endl;
-
-			TestStruct testingReadingIn;
-			incomingPacket->Deserialize(testingReadingIn.hello, testingReadingIn.goodbye, testingReadingIn.test1, testingReadingIn.test2, testingReadingIn.test3); // mwhahaha my multiple param any type verdaic function ! >:)
-			std::cout << testingReadingIn.goodbye;
+			//std::cout << "Received a message." << std::endl;
+			//
+			//TestStruct testingReadingIn;
+			//incomingPacket->Deserialize(testingReadingIn.hello, testingReadingIn.goodbye, testingReadingIn.test1, testingReadingIn.test2, testingReadingIn.test3); // mwhahaha my multiple param any type verdaic function ! >:)
+			//std::cout << testingReadingIn.goodbye;
 
 			if (m_attachedPeer->m_currentPacket != nullptr)
 			{
@@ -190,7 +190,7 @@ void const UDPListener::Receive(const char* buffer)
 	//return nullptr;
 }
 
-void UDPListener::Send(Packet packet)
+void UDPListener::Send(Packet& packet)
 {
 	int sendResult = sendto(m_hostSocket, packet.m_allBytes, 1024, 0, (sockaddr*)&m_attachedPeer->m_serverConnection, sizeof(sockaddr_in));
 	if (sendResult == -1)
