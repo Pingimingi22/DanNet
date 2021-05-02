@@ -19,7 +19,7 @@ public:
 	void Send();
 	void SendReliable();
 
-	void Write(int howManyBytes);
+	
 
 	MessageIdentifier GetPacketIdentifier(); // Only to be used after one byte has been read from the packet.
 
@@ -88,7 +88,7 @@ public:
 private:
 	static constexpr int maxPacketSize = 1024;
 
-
+	void Write(int howManyBytes);
 
 public:
 	// These probably shouldn't be public but it's easier this way to read things into these byte arrays all the way in the UDPListener.

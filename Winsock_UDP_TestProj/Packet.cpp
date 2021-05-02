@@ -31,13 +31,16 @@ void Packet::Write(int howManyBytes)
 
 MessageIdentifier Packet::GetPacketIdentifier()
 {
-	int length = m_readBytes->str().length();
-	assert(m_readBytes->str().length() > 0); // Making sure that we've atleast ready *something* in. This is really bad error checking but I guess it's better than nothing.
-	unsigned int identifier = 0;
-	m_readBytes->read((char*)&identifier, sizeof(char)); // sizeof char because char's are 1 byte.
+	//int length = m_readBytes->str().length();
+	//assert(m_readBytes->str().length() > 0); // Making sure that we've atleast ready *something* in. This is really bad error checking but I guess it's better than nothing.
+	//unsigned int identifier = 0;
+	//m_readBytes->read((char*)&identifier, sizeof(char)); // sizeof char because char's are 1 byte.
+	//
+	//int identifierNumeric = int(identifier);
+	//return (MessageIdentifier)identifierNumeric;
 
-	int identifierNumeric = int(identifier);
 
-	return (MessageIdentifier)identifierNumeric;
+	int testIdentifier = (int)m_allBytes[0];
+	return (MessageIdentifier)testIdentifier;
 
 }

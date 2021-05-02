@@ -146,6 +146,8 @@ void UDPListener::Update()
 			//float fin = 0;
 			//incomingPacket.Deserialize(hi, byte, alpha, idk1, idk2, fin);
 			
+			std::cout << "Received a message." << std::endl;
+
 			TestStruct testingReadingIn;
 			incomingPacket->Deserialize(testingReadingIn.hello, testingReadingIn.goodbye, testingReadingIn.test1, testingReadingIn.test2, testingReadingIn.test3); // mwhahaha my multiple param any type verdaic function ! >:)
 			std::cout << testingReadingIn.goodbye;
