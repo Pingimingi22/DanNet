@@ -31,6 +31,10 @@ public:
 
 	// This Send() function can be used to send things to specific clients if you are the server.
 	void const UDPSendTo(Packet& packet, char* ipAddress, unsigned short port);
+	void const UDPSendToReliable(Packet& packet, char* ipAddress, unsigned short port);
+
+	void const UDPSendToAll(Packet& packet);
+	void UDPSendReliableToAll();
 
 	void FlushCurrentPacket();
 

@@ -134,6 +134,14 @@ void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 	m_udpListener.SendTo(packet, ipAddress, port);
 }
 
+void const Peer::UDPSendToAll(Packet& packet)
+{
+	for (int i = 0; i < m_connectedClients.size(); i++)
+	{
+		UDPSendTo(packet, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
+	}
+}
+
 /// <summary>
 /// FlushCurrentPacket() is so that user's can clear the m_currentPacker variable after they've done what they wanted to do with it, (I'm not sure if I've managed memory correctly.)
 /// </summary>

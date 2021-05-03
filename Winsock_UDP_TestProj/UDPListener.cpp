@@ -245,11 +245,11 @@ void UDPListener::SendTo(Packet& packet, char* ipAddress, unsigned short port)
 
 	if (sendResult == -1)
 	{
-		std::cout << "An error occured when trying to send an ACK CONNECTION message." << std::endl;
+		std::cout << "An error occured when trying to send the message." << std::endl;
 	}
 	else if (sendResult > 0)
 	{
-		std::cout << "Successfully sent ACK CONNECTION message. Bytes sent [" << sendResult << "]." << std::endl;
+		std::cout << "Successfully sent message. Bytes sent [" << sendResult << "]." << std::endl;
 	}
 }
 

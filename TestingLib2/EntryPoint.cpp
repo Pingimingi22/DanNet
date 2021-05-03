@@ -1,10 +1,9 @@
 #include "Peer.h"
 #include "Packet.h"
 #include "CorePackets.h"
-void HandleInput()
-{
-	
-}
+
+#include <thread>
+#include <iostream>
 
 struct TestStruct
 {
@@ -13,19 +12,47 @@ struct TestStruct
 
 };
 
+
+
 enum test
 {
 	move_request = MessageIdentifier::CUSTOM_USER_ENUM,
 	jump_request,
-	trade_request
+	trade_request,
+	chat_message
 
 };
+
+struct ChatMessageStruct
+{
+	int firstByte = int(test::chat_message);
+	char message[25];
+
+};
+
+void HandleInput(Peer& peer)
+{
+	while (true)
+	{
+		char input[25];
+		std::cin >> input;
+	
+		ChatMessageStruct test;
+		strcpy_s(test.message, input);
+		Packet chatPacket;
+		chatPacket.Serialize(test.firstByte, test.message);
+		peer.UDPSendToAll(chatPacket);
+	}
+
+}
 
 int main()
 {
 	Peer testPeer = Peer(true, 25565);
+	std::thread inputThread = std::thread(HandleInput, std::ref(testPeer));
 
 	testPeer.StartPeer();
+
 
 	bool isRunning = true;
 	while (isRunning)
