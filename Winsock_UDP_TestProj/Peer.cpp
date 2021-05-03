@@ -83,7 +83,7 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 	inet_pton(AF_INET, &ipAddress[0], &serverAddress.sin_addr.S_un.S_addr);
 
 	m_serverConnection = serverAddress;
-	std::cout << "Connected to " << ipAddress << " on port: " << portNumber << std::endl;
+	std::cout << "Attempting to connection to " << ipAddress << " on port: " << portNumber << std::endl;
 
 	// ============ TODO ============= MAKE IT SO THE SERVER GETS A CONNECTION TO THE CLIENT.
 
@@ -129,6 +129,11 @@ void Peer::UDPSendReliable(Packet packet)
 	// TODO actually make this thing.
 }
 
+void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
+{
+	m_udpListener.SendTo(packet, ipAddress, port);
+}
+
 /// <summary>
 /// FlushCurrentPacket() is so that user's can clear the m_currentPacker variable after they've done what they wanted to do with it, (I'm not sure if I've managed memory correctly.)
 /// </summary>
@@ -145,4 +150,32 @@ void Peer::Update()
 	{
 		m_udpListener.Update();
 	}
+}
+
+void const Peer::AddClient(sockaddr_in& clientAddress)
+{
+	ClientStruct client;
+	inet_ntop(AF_INET, &clientAddress.sin_addr.S_un.S_addr, &client.m_ipAddress[0], 25);
+	client.m_clientID = m_clientCount;
+	client.m_port = ntohs(clientAddress.sin_port);
+
+	m_clientCount++; // increasing the connected clients counter.
+
+	m_connectedClients.push_back(client);
+
+	std::cout << "Client connected! Client IP: " << client.m_ipAddress << " Port: " << client.m_port << " ID No. " << client.m_clientID << "." << std::endl;
+
+	// Letting the client know that we've accepted their connection.
+	ACKConnection AC;
+	//AC.firstByte = (int)MessageIdentifier::ACK_CONNECT;
+	AC.clientID = client.m_clientID;
+	AC.port = client.m_port;
+	Packet ACPacket;
+	ACPacket.Serialize(AC.firstByte, AC.clientID, AC.port);
+	UDPSendTo(ACPacket, client.m_ipAddress, client.m_port);
+}
+
+void Peer::RemoveClient(char* ipAddress)
+{
+	// TODO do this function.
 }

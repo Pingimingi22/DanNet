@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+
 class Peer;
 class Packet;
 
@@ -26,6 +27,9 @@ public:
 
 	void Send(Packet& packet);
 	//void SendReliable(Packet packet);
+
+	// Server's can use this to send things to specific clients.
+	void SendTo(Packet& packet, char* ipAddress, unsigned short port);
 
 	void DisplaySettings();
 

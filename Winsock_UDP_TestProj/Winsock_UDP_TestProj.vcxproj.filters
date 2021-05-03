@@ -53,5 +53,8 @@
     <ClInclude Include="CorePackets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ClientStruct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

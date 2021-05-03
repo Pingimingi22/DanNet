@@ -5,6 +5,9 @@
 #include <sstream>
 #include <thread>
 
+#include <vector>
+#include "ClientStruct.h"
+
 class UDPListener;
 class Packet;
 
@@ -22,9 +25,12 @@ public:
 
 	Packet* UDPReceivePacket();
 
+	// These two Send() functions are to be used after a client is connected to a server. They require that a connection has been established.
 	void const UDPSend(Packet& packet);
 	void UDPSendReliable(Packet packet);
 
+	// This Send() function can be used to send things to specific clients if you are the server.
+	void const UDPSendTo(Packet& packet, char* ipAddress, unsigned short port);
 
 	void FlushCurrentPacket();
 
@@ -33,6 +39,10 @@ private:
 	void Update();
 	//Peer CreatePeer(bool server = false, unsigned short portNumber = NULL); // i guess this is gonna be a factory method.
 
+
+	// Only to be used if the peer is the server.
+	void const AddClient(sockaddr_in& clientAddress);
+	void RemoveClient(char* ipAddress);
 
 	bool m_isServer = false;
 	UDPListener m_udpListener;
@@ -43,6 +53,15 @@ private:
 
 
 	Packet* m_currentPacket = nullptr;
+
+	// should be empty if we're not the server.
+	std::vector<ClientStruct> m_connectedClients;
+
+	int m_clientCount = 0; // client's ID's will just be the clientCount of when they joined. So the first client that joins will have an ID of '0'.
+
+
+	// ------------------ ONLY TO BE USED IF PEER IS A CLIENT. ------------------ //
+	int m_ID = -1; // -1 is like an error checking thing.
 
 
 	// -------------------- Threading stuff -------------------- //

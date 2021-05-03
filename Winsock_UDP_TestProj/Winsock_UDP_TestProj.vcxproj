@@ -148,6 +148,7 @@
     <ClCompile Include="UDPListener.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClientStruct.h" />
     <ClInclude Include="CorePackets.h" />
     <ClInclude Include="MessageIdentifiers.h" />
     <ClInclude Include="Packet.h" />

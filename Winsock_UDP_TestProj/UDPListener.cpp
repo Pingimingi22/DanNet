@@ -8,6 +8,8 @@
 
 #include "Peer.h"
 
+#include "CorePackets.h"
+
 // DELETE THIS LATER.
 struct TestStruct
 {
@@ -153,7 +155,23 @@ void UDPListener::Update()
 			//std::cout << testingReadingIn.goodbye;
 
 			// We check every incoming packet's first byte. If they are sending a CorePacket we deal with it here so the user doesn't have to.
-			//char* firstByte = 
+			switch (incomingPacket->GetPacketIdentifier())
+			{
+			case MessageIdentifier::CONNECT:
+				m_attachedPeer->AddClient(incomingClientAddress);
+				return;
+				break;
+			case MessageIdentifier::ACK_CONNECT:
+			{
+				ACKConnection AC;
+				incomingPacket->Deserialize(AC.firstByte, AC.clientID, AC.port);
+				m_attachedPeer->m_ID = AC.clientID;
+				std::cout << "Server has acknowledged our connection. Our client ID is: " << m_attachedPeer->m_ID << "." << std::endl;
+			}
+			default:
+				break;
+			}
+			
 
 			if (m_attachedPeer->m_currentPacket != nullptr)
 			{
@@ -215,6 +233,25 @@ void UDPListener::Send(Packet& packet)
 //void UDPListener::SendReliable(Packet packet)
 //{
 //}
+
+void UDPListener::SendTo(Packet& packet, char* ipAddress, unsigned short port)
+{
+	sockaddr_in recipientAddress;
+	recipientAddress.sin_family = AF_INET;
+	inet_pton(AF_INET, &ipAddress[0], &recipientAddress.sin_addr.S_un.S_addr);
+	recipientAddress.sin_port = htons(port);
+
+	int sendResult = sendto(m_hostSocket, &packet.m_allBytes[0], 1024, 0, (sockaddr*)&recipientAddress, sizeof(sockaddr_in));
+
+	if (sendResult == -1)
+	{
+		std::cout << "An error occured when trying to send an ACK CONNECTION message." << std::endl;
+	}
+	else if (sendResult > 0)
+	{
+		std::cout << "Successfully sent ACK CONNECTION message. Bytes sent [" << sendResult << "]." << std::endl;
+	}
+}
 
 void UDPListener::DisplaySettings()
 {

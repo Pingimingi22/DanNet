@@ -33,6 +33,10 @@ int main()
 	//testPacket.Serialize(testStruct.foo, testStruct.bar);
 	//testPeer.UDPSend(testPacket);
 
+	while (isRunning)
+	{
+
+	}
 
 
 	Packet testPacket;
