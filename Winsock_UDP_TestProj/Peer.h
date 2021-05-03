@@ -26,6 +26,8 @@ public:
 	void UDPSendReliable(Packet packet);
 
 
+	void FlushCurrentPacket();
+
 
 private:
 	void Update();

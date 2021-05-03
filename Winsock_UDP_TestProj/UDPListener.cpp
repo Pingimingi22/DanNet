@@ -152,6 +152,9 @@ void UDPListener::Update()
 			//incomingPacket->Deserialize(testingReadingIn.hello, testingReadingIn.goodbye, testingReadingIn.test1, testingReadingIn.test2, testingReadingIn.test3); // mwhahaha my multiple param any type verdaic function ! >:)
 			//std::cout << testingReadingIn.goodbye;
 
+			// We check every incoming packet's first byte. If they are sending a CorePacket we deal with it here so the user doesn't have to.
+			//char* firstByte = 
+
 			if (m_attachedPeer->m_currentPacket != nullptr)
 			{
 				delete m_attachedPeer->m_currentPacket;
@@ -167,6 +170,7 @@ void UDPListener::Update()
 		else if (result == -1)
 		{
 			delete incomingPacket;
+			m_attachedPeer->m_currentPacket = nullptr; // have to set that to nullptr so that way it flushes out the old packet.
 
 			std::cerr << "UDPListener recvfrom() error." << std::endl;
 
@@ -174,12 +178,17 @@ void UDPListener::Update()
 		else if (result == 0)
 		{
 			delete incomingPacket;
+			m_attachedPeer->m_currentPacket = nullptr;
 
 			// i'm not exactly sure what 0 means but i do know that it means we havn't received any bytes.
 		}
 	}
 	else
 	{
+		// if we havn't received anything.
+		//m_attachedPeer->m_currentPacket = nullptr;
+
+
 		//std::cout << "UDPListener timeout." << std::endl;
 	}
 

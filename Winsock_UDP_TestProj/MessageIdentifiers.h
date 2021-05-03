@@ -7,7 +7,7 @@
 /// ============================================================================================ ///
 
  
-enum MessageIdentifier
+enum class MessageIdentifier
 {
 	CONNECT = 0,
 	DISCONNECT = 1,

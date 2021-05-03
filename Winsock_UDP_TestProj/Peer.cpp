@@ -9,6 +9,8 @@
 
 #include <thread>
 
+#include "CorePackets.h"
+
 Peer::Peer(bool server, unsigned short portNumber)
 {
 	WSADATA wsadata;
@@ -80,11 +82,27 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 	serverAddress.sin_port = htons(portNumber);
 	inet_pton(AF_INET, &ipAddress[0], &serverAddress.sin_addr.S_un.S_addr);
 
+	m_serverConnection = serverAddress;
 	std::cout << "Connected to " << ipAddress << " on port: " << portNumber << std::endl;
 
 	// ============ TODO ============= MAKE IT SO THE SERVER GETS A CONNECTION TO THE CLIENT.
 
-	m_serverConnection = serverAddress;
+	// ------------------------------- Sending the server a Connection packet which contains our IP ------------------------------- //
+
+	sockaddr_in hostAddress;
+	int hostSize = sizeof(sockaddr_in);
+
+	getsockname(m_hostSocket, (sockaddr*)&hostAddress, &hostSize);
+
+	Packet* connectionPacket = new Packet;
+	ConnectionStruct connection;
+	//connection.ip = ntohl(hostAddress.sin_addr.S_un.S_addr);
+	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 256); // idk 256 is just random.
+	
+	connectionPacket->Serialize(connection.firstByte, connection.ip);
+	m_udpListener.Send(*connectionPacket);
+	delete connectionPacket;
+
 }
 
 /// <summary>
@@ -109,6 +127,16 @@ void const Peer::UDPSend(Packet& packet)
 void Peer::UDPSendReliable(Packet packet)
 {
 	// TODO actually make this thing.
+}
+
+/// <summary>
+/// FlushCurrentPacket() is so that user's can clear the m_currentPacker variable after they've done what they wanted to do with it, (I'm not sure if I've managed memory correctly.)
+/// </summary>
+void Peer::FlushCurrentPacket()
+{
+	if(m_currentPacket != nullptr)
+		delete m_currentPacket;
+	m_currentPacket = nullptr;
 }
 
 void Peer::Update()

@@ -24,6 +24,11 @@ void Packet::SendReliable()
 {
 }
 
+void Packet::Clear()
+{
+	delete this;
+}
+
 void Packet::Write(int howManyBytes)
 {
 	m_readBytes->write(m_allBytes, howManyBytes);

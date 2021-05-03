@@ -19,6 +19,8 @@ public:
 	void Send();
 	void SendReliable();
 
+
+	void Clear();
 	
 
 	MessageIdentifier GetPacketIdentifier(); // Only to be used after one byte has been read from the packet.
