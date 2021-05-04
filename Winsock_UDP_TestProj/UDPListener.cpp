@@ -9,6 +9,7 @@
 #include "Peer.h"
 
 #include "CorePackets.h"
+#include <mutex>
 
 // DELETE THIS LATER.
 struct TestStruct
@@ -175,6 +176,7 @@ void UDPListener::Update()
 
 			if (m_attachedPeer->m_currentPacket != nullptr)
 			{
+				std::lock_guard<std::mutex> guard(*m_attachedPeer->m_packetMutex);
 				delete m_attachedPeer->m_currentPacket;
 				m_attachedPeer->m_currentPacket = nullptr;                // This is the only place I'm freeing up the memory of m_currentPacket. So there wont be that bad of a memory leak since every time we receive
 			}															  // a new packet, it will delete the old one.
@@ -241,7 +243,7 @@ void UDPListener::SendTo(Packet& packet, char* ipAddress, unsigned short port)
 	inet_pton(AF_INET, &ipAddress[0], &recipientAddress.sin_addr.S_un.S_addr);
 	recipientAddress.sin_port = htons(port);
 
-	int sendResult = sendto(m_hostSocket, &packet.m_allBytes[0], 256, 0, (sockaddr*)&recipientAddress, sizeof(sockaddr_in));
+	int sendResult = sendto(m_hostSocket, packet.m_allBytes, 256, 0, (sockaddr*)&recipientAddress, sizeof(sockaddr_in));
 
 	if (sendResult == -1)
 	{

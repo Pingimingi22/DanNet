@@ -16,6 +16,10 @@ Peer::Peer(bool server, unsigned short portNumber)
 	WSADATA wsadata;
 	int result = WSAStartup(MAKEWORD(2, 2), &wsadata);
 
+	// initialising my test mutex.
+	m_packetMutex = std::make_unique<std::mutex>();
+
+
 	if (result != 0)
 	{
 		std::cout << "Error occured on WSAStartup()" << std::endl;
@@ -147,9 +151,23 @@ void const Peer::UDPSendToAll(Packet& packet)
 /// </summary>
 void Peer::FlushCurrentPacket()
 {
+	std::lock_guard<std::mutex> guard(*m_packetMutex);
 	if(m_currentPacket != nullptr)
 		delete m_currentPacket;
 	m_currentPacket = nullptr;
+}
+
+ClientStruct Peer::GetClient(int id)
+{
+	for (int i = 0; i < m_connectedClients.size(); i++)
+	{
+		if (m_connectedClients[i].m_clientID == id)
+		{
+			return m_connectedClients[i];
+		}
+	}
+	// otherwise they tried to find a client that doesn't exist.
+	assert(true);
 }
 
 void Peer::Update()

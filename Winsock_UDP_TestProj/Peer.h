@@ -8,6 +8,8 @@
 #include <vector>
 #include "ClientStruct.h"
 
+#include <mutex>
+
 class UDPListener;
 class Packet;
 
@@ -38,6 +40,8 @@ public:
 
 	void FlushCurrentPacket();
 
+	int GetId() { return m_ID; }
+	ClientStruct GetClient(int id);
 
 private:
 	void Update();
@@ -55,7 +59,7 @@ private:
 	// Only to be set if the peer is a client.
 	sockaddr_in m_serverConnection;
 
-
+	std::unique_ptr<std::mutex> m_packetMutex;
 	Packet* m_currentPacket = nullptr;
 
 	// should be empty if we're not the server.
