@@ -127,7 +127,7 @@ void UDPListener::Update()
 		int incomingClientSize;
 		incomingClientSize = sizeof(sockaddr_in); 
 
-		int result = recvfrom(m_hostSocket, &incomingPacket->m_allBytes[0], 1024, 0, (sockaddr*)&incomingClientAddress, &incomingClientSize);
+		int result = recvfrom(m_hostSocket, &incomingPacket->m_allBytes[0], 256, 0, (sockaddr*)&incomingClientAddress, &incomingClientSize);
 		if (result > 0)
 		{
 			//std::cout << "Received message." << std::endl;
@@ -219,7 +219,7 @@ void const UDPListener::Receive(const char* buffer)
 
 void UDPListener::Send(Packet& packet)
 {
-	int sendResult = sendto(m_hostSocket, packet.m_allBytes, 1024, 0, (sockaddr*)&m_attachedPeer->m_serverConnection, sizeof(sockaddr_in));
+	int sendResult = sendto(m_hostSocket, packet.m_allBytes, 256, 0, (sockaddr*)&m_attachedPeer->m_serverConnection, sizeof(sockaddr_in));
 	if (sendResult == -1)
 	{
 		std::cout << "An error occured when trying to send a message." << std::endl;
@@ -241,7 +241,7 @@ void UDPListener::SendTo(Packet& packet, char* ipAddress, unsigned short port)
 	inet_pton(AF_INET, &ipAddress[0], &recipientAddress.sin_addr.S_un.S_addr);
 	recipientAddress.sin_port = htons(port);
 
-	int sendResult = sendto(m_hostSocket, &packet.m_allBytes[0], 1024, 0, (sockaddr*)&recipientAddress, sizeof(sockaddr_in));
+	int sendResult = sendto(m_hostSocket, &packet.m_allBytes[0], 256, 0, (sockaddr*)&recipientAddress, sizeof(sockaddr_in));
 
 	if (sendResult == -1)
 	{

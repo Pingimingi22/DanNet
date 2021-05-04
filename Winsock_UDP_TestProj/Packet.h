@@ -49,7 +49,7 @@ public:
 	void Deserialize(T& first, Args& ... args)
 	{
 		//std::stringstream ss;										// ============================================================ NOTE ================================================================== //
-		m_recursiveStream.write(&m_allBytes[0], 1024);				// kind of confused why this is even working. Realistically, I shouldn't be rewriting everything to the string stream each type this    //
+		m_recursiveStream.write(&m_allBytes[0], 256);				// kind of confused why this is even working. Realistically, I shouldn't be rewriting everything to the string stream each type this    //
 																	// recursive function gets called. I think the Cereal library is saving me with it's really good input/output serialization functions.  //
 																	// ==================================================================================================================================== //
 		cereal::BinaryInputArchive iarchive(m_recursiveStream); 
@@ -68,7 +68,7 @@ public:
 		cereal::BinaryOutputArchive outputArchive(m_recursiveStream);
 		outputArchive(t);
 
-		m_recursiveStream.read(&m_allBytes[0], 1024);
+		m_recursiveStream.read(&m_allBytes[0], 256);
 		m_recursiveStream.clear();
 	}
 	
@@ -88,7 +88,7 @@ public:
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------- //
 private:
-	static constexpr int maxPacketSize = 1024;
+	static constexpr int maxPacketSize = 256;
 
 	void Write(int howManyBytes);
 

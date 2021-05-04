@@ -36,7 +36,7 @@ int main()
 
 	bool isRunning = true;
 
-	testPeer.Connect("192.168.1.193", 25565);
+	testPeer.Connect("192.168.1.124", 25565);
 	
 	//Packet testPacket;
 	//TestStruct testStruct;

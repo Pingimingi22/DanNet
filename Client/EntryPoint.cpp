@@ -20,7 +20,7 @@ struct TestStruct
 
 
 std::stringstream m_recursiveStream;
-char m_allBytes[1024];
+char m_allBytes[256];
 
 template<typename T>
 void Serialize(T& t)
@@ -28,7 +28,7 @@ void Serialize(T& t)
 	cereal::BinaryOutputArchive outputArchive(m_recursiveStream);
 	outputArchive(t);
 
-	m_recursiveStream.read(&m_allBytes[0], 1024);
+	m_recursiveStream.read(&m_allBytes[0], 256);
 	m_recursiveStream.clear();
 }
 
