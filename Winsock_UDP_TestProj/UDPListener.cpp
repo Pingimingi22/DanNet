@@ -176,9 +176,13 @@ void UDPListener::Update()
 
 			if (m_attachedPeer->m_currentPacket != nullptr)
 			{
-				std::lock_guard<std::mutex> guard(*m_attachedPeer->m_packetMutex);
-				delete m_attachedPeer->m_currentPacket;
-				m_attachedPeer->m_currentPacket = nullptr;                // This is the only place I'm freeing up the memory of m_currentPacket. So there wont be that bad of a memory leak since every time we receive
+				// ==================================== NOTE ======================================
+				// this was a cool idea being able to clear current packets with incoming packets but it causes issues and i plan on replacing it with a packet queue system.
+				// ================================================================================
+
+				//std::lock_guard<std::mutex> guard(*m_attachedPeer->m_packetMutex);
+				//delete m_attachedPeer->m_currentPacket;
+				//m_attachedPeer->m_currentPacket = nullptr;                // This is the only place I'm freeing up the memory of m_currentPacket. So there wont be that bad of a memory leak since every time we receive
 			}															  // a new packet, it will delete the old one.
 
 			m_attachedPeer->m_currentPacket = incomingPacket; // ------------------------> Telling the attached peer that we have received a packet. The user can do what they like with it.
@@ -189,18 +193,24 @@ void UDPListener::Update()
 		}
 		else if (result == -1)
 		{
+			// ==================================== NOTE ======================================
+			// this was a cool idea being able to clear current packets with incoming packets but it causes issues and i plan on replacing it with a packet queue system.
+			// ================================================================================
 			delete incomingPacket;
 			m_attachedPeer->m_currentPacket = nullptr; // have to set that to nullptr so that way it flushes out the old packet.
-
-			std::cerr << "UDPListener recvfrom() error." << std::endl;
+			//
+			//std::cerr << "UDPListener recvfrom() error." << std::endl;
 
 		}
 		else if (result == 0)
 		{
+			// ==================================== NOTE ======================================
+			// this was a cool idea being able to clear current packets with incoming packets but it causes issues and i plan on replacing it with a packet queue system.
+			// ================================================================================
 			delete incomingPacket;
 			m_attachedPeer->m_currentPacket = nullptr;
-
-			// i'm not exactly sure what 0 means but i do know that it means we havn't received any bytes.
+			//
+			//// i'm not exactly sure what 0 means but i do know that it means we havn't received any bytes.
 		}
 	}
 	else
