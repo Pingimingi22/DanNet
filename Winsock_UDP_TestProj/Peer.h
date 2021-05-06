@@ -29,7 +29,8 @@ public:
 
 	// These two Send() functions are to be used after a client is connected to a server. They require that a connection has been established.
 	void const UDPSend(Packet& packet);
-	void UDPSendReliable(Packet packet);
+	void UDPSendReliable(Packet& packet);
+	void UpdateReliableSends();
 
 	// This Send() function can be used to send things to specific clients if you are the server.
 	void const UDPSendTo(Packet& packet, char* ipAddress, unsigned short port);
@@ -62,6 +63,9 @@ private:
 	std::unique_ptr<std::mutex> m_packetMutex;
 	Packet* m_currentPacket = nullptr;
 	std::vector<Packet*> m_packetQueue;
+
+	// This is a container of the packet's we want to make sure get sent. We only remove them from this container after we receive an acknowledgement from the server.
+	std::vector<Packet*> m_reliablePackets;
 
 
 	// should be empty if we're not the server.

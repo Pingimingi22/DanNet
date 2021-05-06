@@ -9,7 +9,7 @@
 #include "cereal/cereal.hpp"
 #include "cereal/archives/binary.hpp"
 
-
+#include "PacketPriorities.h"
 
 class Packet
 {
@@ -23,6 +23,8 @@ public:
 	void Clear();
 	
 
+	PacketPriority GetPacketPriority();
+	
 	MessageIdentifier GetPacketIdentifier(); // Only to be used after one byte has been read from the packet.
 
 

@@ -109,10 +109,10 @@ void UDPListener::Update()
 	
 	m_readReady = m_master;
 	timeval tv;
-	tv.tv_sec = 5;
-	tv.tv_usec = 0;
+	//tv.tv_sec = 5;
+	//tv.tv_usec = 0;
 
-	if (select(m_hostSocket, &m_readReady, NULL, NULL, &tv) == -1)
+	if (select(m_hostSocket, &m_readReady, NULL, NULL, NULL) == -1)
 	{
 		std::cerr << "select() error." << std::endl;
 	}
@@ -156,24 +156,25 @@ void UDPListener::Update()
 			//std::cout << testingReadingIn.goodbye;
 
 			// We check every incoming packet's first byte. If they are sending a CorePacket we deal with it here so the user doesn't have to.
-			switch ((int)incomingPacket->GetPacketIdentifier())
-			{
-			case (int)MessageIdentifier::CONNECT:
-				m_attachedPeer->AddClient(incomingClientAddress);
-				std::cout << "Received connect packet. Attempting to add client." << std::endl;
-				//return;
-				break;
-			case (int)MessageIdentifier::ACK_CONNECT:
-			{
-				ACKConnection AC;
-				incomingPacket->Deserialize(AC.firstByte, AC.clientID, AC.port);
-				m_attachedPeer->m_ID = AC.clientID;
-				std::cout << "Server has acknowledged our connection. Our client ID is: " << m_attachedPeer->m_ID << "." << std::endl;
-				break;
-			}
-			default:
-				break;
-			}
+			// Commented this out because we no longer are going to be using the incoming packet as a thing to process. what we want to do instead is process the top of the m_packetQueue which is down below.
+			//switch ((int)incomingPacket->GetPacketIdentifier())
+			//{
+			//case (int)MessageIdentifier::CONNECT:
+			//	m_attachedPeer->AddClient(incomingClientAddress);
+			//	std::cout << "Received connect packet. Attempting to add client." << std::endl;
+			//	//return;
+			//	break;
+			//case (int)MessageIdentifier::ACK_CONNECT:
+			//{
+			//	ACKConnection AC;
+			//	incomingPacket->Deserialize(AC.firstByte, AC.clientID, AC.port);
+			//	m_attachedPeer->m_ID = AC.clientID;
+			//	std::cout << "Server has acknowledged our connection. Our client ID is: " << m_attachedPeer->m_ID << "." << std::endl;
+			//	break;
+			//}
+			//default:
+			//	break;
+			//}
 			
 			MessageIdentifier testingIdentifier = incomingPacket->GetPacketIdentifier();
 			std::cout << "received something with a packet identifier of: " << (int)incomingPacket->GetPacketIdentifier() << std::endl;
@@ -191,7 +192,32 @@ void UDPListener::Update()
 
 			
 			//m_attachedPeer->m_currentPacket = incomingPacket; // ------------------------> Telling the attached peer that we have received a packet. The user can do what they like with it.
-			m_attachedPeer->m_packetQueue.push_back(incomingPacket);
+			if(m_attachedPeer->m_packetQueue.size() <= 0)
+				m_attachedPeer->m_packetQueue.push_back(incomingPacket);
+
+			switch (m_attachedPeer->m_packetQueue[0]->GetPacketIdentifier())
+			{
+			case MessageIdentifier::CONNECT:
+				m_attachedPeer->AddClient(incomingClientAddress);
+				std::cout << "Received connect packet. Attempting to add client." << std::endl;
+				delete m_attachedPeer->m_packetQueue[0];
+				m_attachedPeer->m_packetQueue.erase(m_attachedPeer->m_packetQueue.begin());
+				//return;
+				break;
+			case MessageIdentifier::ACK_CONNECT:
+			{
+				ACKConnection AC;
+				incomingPacket->Deserialize(AC.firstByte, AC.clientID, AC.port);
+				m_attachedPeer->m_ID = AC.clientID;
+				std::cout << "Server has acknowledged our connection. Our client ID is: " << m_attachedPeer->m_ID << "." << std::endl;
+				delete m_attachedPeer->m_packetQueue[0];
+				m_attachedPeer->m_packetQueue.erase(m_attachedPeer->m_packetQueue.begin());
+				break;
+			}
+			default:
+				break;
+			}
+
 
 			//incomingPacket.Write(1024);
 			//

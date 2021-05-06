@@ -61,6 +61,7 @@ void Peer::StartPeer()
 	m_udpListener.Start();
 
 	m_udpListenerUpdateThread = new std::thread(&Peer::Update, this);
+
 	//UDPListenerThread.join();
 }
 
@@ -145,9 +146,22 @@ void const Peer::UDPSend(Packet& packet)
 	m_udpListener.Send(packet);
 }
 
-void Peer::UDPSendReliable(Packet packet)
+void Peer::UDPSendReliable(Packet& packet)
 {
 	// TODO actually make this thing.
+	//m_udpListener.send
+	//std::thread reliableSendThread = std::thread
+	//while()
+	m_reliablePackets.push_back(&packet);
+	std::cout << "Added a packet to the reliable send queue." << std::endl;
+}
+
+void Peer::UpdateReliableSends()
+{
+	if (m_reliablePackets.size() > 0)
+	{
+		UDPSend(*m_reliablePackets[0]);
+	}
 }
 
 void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)

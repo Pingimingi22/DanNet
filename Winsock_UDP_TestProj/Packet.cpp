@@ -34,6 +34,14 @@ void Packet::Write(int howManyBytes)
 	m_readBytes->write(m_allBytes, howManyBytes);
 }
 
+PacketPriority Packet::GetPacketPriority()
+{
+
+	// the first byte will be the packet priority type. the next two bytes will be random numbers specific to the packet so the receiver can confirm whether it arrived or not.
+	int packetPriority = int(m_allBytes[0]);
+	return (PacketPriority)packetPriority;
+}
+
 MessageIdentifier Packet::GetPacketIdentifier()
 {
 	//int length = m_readBytes->str().length();
@@ -45,7 +53,7 @@ MessageIdentifier Packet::GetPacketIdentifier()
 	//return (MessageIdentifier)identifierNumeric;
 
 
-	int testIdentifier = (int)m_allBytes[0];
+	int testIdentifier = (int)m_allBytes[3];
 	return (MessageIdentifier)testIdentifier;
 
 }
