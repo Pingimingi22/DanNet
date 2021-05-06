@@ -61,6 +61,8 @@ private:
 
 	std::unique_ptr<std::mutex> m_packetMutex;
 	Packet* m_currentPacket = nullptr;
+	std::vector<Packet*> m_packetQueue;
+
 
 	// should be empty if we're not the server.
 	std::vector<ClientStruct> m_connectedClients;

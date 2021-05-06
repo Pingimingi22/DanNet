@@ -156,23 +156,27 @@ void UDPListener::Update()
 			//std::cout << testingReadingIn.goodbye;
 
 			// We check every incoming packet's first byte. If they are sending a CorePacket we deal with it here so the user doesn't have to.
-			switch (incomingPacket->GetPacketIdentifier())
+			switch ((int)incomingPacket->GetPacketIdentifier())
 			{
-			case MessageIdentifier::CONNECT:
+			case (int)MessageIdentifier::CONNECT:
 				m_attachedPeer->AddClient(incomingClientAddress);
-				return;
+				std::cout << "Received connect packet. Attempting to add client." << std::endl;
+				//return;
 				break;
-			case MessageIdentifier::ACK_CONNECT:
+			case (int)MessageIdentifier::ACK_CONNECT:
 			{
 				ACKConnection AC;
 				incomingPacket->Deserialize(AC.firstByte, AC.clientID, AC.port);
 				m_attachedPeer->m_ID = AC.clientID;
 				std::cout << "Server has acknowledged our connection. Our client ID is: " << m_attachedPeer->m_ID << "." << std::endl;
+				break;
 			}
 			default:
 				break;
 			}
 			
+			MessageIdentifier testingIdentifier = incomingPacket->GetPacketIdentifier();
+			std::cout << "received something with a packet identifier of: " << (int)incomingPacket->GetPacketIdentifier() << std::endl;
 
 			if (m_attachedPeer->m_currentPacket != nullptr)
 			{
@@ -185,7 +189,10 @@ void UDPListener::Update()
 				//m_attachedPeer->m_currentPacket = nullptr;                // This is the only place I'm freeing up the memory of m_currentPacket. So there wont be that bad of a memory leak since every time we receive
 			}															  // a new packet, it will delete the old one.
 
-			m_attachedPeer->m_currentPacket = incomingPacket; // ------------------------> Telling the attached peer that we have received a packet. The user can do what they like with it.
+			
+			//m_attachedPeer->m_currentPacket = incomingPacket; // ------------------------> Telling the attached peer that we have received a packet. The user can do what they like with it.
+			m_attachedPeer->m_packetQueue.push_back(incomingPacket);
+
 			//incomingPacket.Write(1024);
 			//
 			//MessageIdentifier packetIdentifier = incomingPacket.GetPacketIdentifier();
@@ -261,7 +268,7 @@ void UDPListener::SendTo(Packet& packet, char* ipAddress, unsigned short port)
 	}
 	else if (sendResult > 0)
 	{
-		std::cout << "Successfully sent message. Bytes sent [" << sendResult << "]." << std::endl;
+		std::cout << "Successfully sent message to. " << ipAddress << ", " << port << " Bytes sent [" << sendResult << "]." << std::endl;
 	}
 }
 

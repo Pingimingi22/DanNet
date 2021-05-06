@@ -48,6 +48,6 @@ private:
 	fd_set m_writeReady;
 	fd_set m_readReady;
 
-	Peer* m_attachedPeer;
+	Peer* m_attachedPeer = nullptr;
 	
 };

@@ -104,6 +104,16 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 256); // idk 256 is just random.
 	
 	connectionPacket->Serialize(connection.firstByte, connection.ip);
+
+	// delete this just for testing.
+	ConnectionStruct testingConnection;
+	connectionPacket->Deserialize(testingConnection.firstByte, testingConnection.ip);
+	std::cout << "=================================" << std::endl;
+	std::cout << testingConnection.firstByte << std::endl;
+	std::cout << "=================================" << std::endl;
+	// --------------------------
+
+
 	m_udpListener.Send(*connectionPacket);
 	delete connectionPacket;
 
@@ -115,11 +125,18 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 /// <returns></returns>
 Packet* Peer::UDPReceivePacket()
 {
-	if (m_currentPacket == nullptr)
-		return nullptr;
+	//if (m_currentPacket == nullptr)
+	//	return nullptr;
+	//
+	//// if the udp listener has given us a real packet, we can give the user that.
+	//return m_currentPacket;
 
-	// if the udp listener has given us a real packet, we can give the user that.
-	return m_currentPacket;
+	if (m_packetQueue.size() == 0)
+	{
+		return nullptr;
+	}
+
+	return m_packetQueue[0];
 }
 
 void const Peer::UDPSend(Packet& packet)
@@ -151,10 +168,17 @@ void const Peer::UDPSendToAll(Packet& packet)
 /// </summary>
 void Peer::FlushCurrentPacket()
 {
-	std::lock_guard<std::mutex> guard(*m_packetMutex);
-	if(m_currentPacket != nullptr)
-		delete m_currentPacket;
-	m_currentPacket = nullptr;
+	//std::lock_guard<std::mutex> guard(*m_packetMutex);
+	//if(m_currentPacket != nullptr)
+	//	delete m_currentPacket;
+	//m_currentPacket = nullptr;
+
+	if (m_packetQueue[0] != nullptr)
+	{
+		delete m_packetQueue[0];
+		m_packetQueue.erase(m_packetQueue.begin());
+	}
+
 }
 
 ClientStruct Peer::GetClient(int id)
@@ -199,6 +223,8 @@ void const Peer::AddClient(sockaddr_in& clientAddress)
 	Packet ACPacket;
 	ACPacket.Serialize(AC.firstByte, AC.clientID, AC.port);
 	UDPSendTo(ACPacket, client.m_ipAddress, client.m_port);
+
+	std::cout << "Sending connection acknowledgement to client." << std::endl;
 }
 
 void Peer::RemoveClient(char* ipAddress)

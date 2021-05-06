@@ -11,13 +11,13 @@
 
 struct ConnectionStruct
 {
-	char firstByte = (char)MessageIdentifier::CONNECT;
+	int firstByte = (int)MessageIdentifier::CONNECT;
 	char ip[256];
 };
 
 struct ACKConnection
 {
-	char firstByte = (char)MessageIdentifier::ACK_CONNECT;
+	int firstByte = (int)MessageIdentifier::ACK_CONNECT;
 	int clientID = -1;
 	unsigned short port = -1;
 };
