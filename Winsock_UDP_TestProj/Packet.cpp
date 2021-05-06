@@ -53,7 +53,7 @@ MessageIdentifier Packet::GetPacketIdentifier()
 	//return (MessageIdentifier)identifierNumeric;
 
 
-	int testIdentifier = (int)m_allBytes[3];
+	int testIdentifier = (int)m_allBytes[sizeof(int)];
 	return (MessageIdentifier)testIdentifier;
 
 }

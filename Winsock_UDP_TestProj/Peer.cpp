@@ -104,11 +104,11 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 	//connection.ip = ntohl(hostAddress.sin_addr.S_un.S_addr);
 	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 256); // idk 256 is just random.
 	
-	connectionPacket->Serialize(connection.firstByte, connection.ip);
+	connectionPacket->Serialize(connection.realFirstByte, connection.firstByte, connection.ip);
 
 	// delete this just for testing.
 	ConnectionStruct testingConnection;
-	connectionPacket->Deserialize(testingConnection.firstByte, testingConnection.ip);
+	connectionPacket->Deserialize(testingConnection.realFirstByte, testingConnection.firstByte, testingConnection.ip);
 	std::cout << "=================================" << std::endl;
 	std::cout << testingConnection.firstByte << std::endl;
 	std::cout << "=================================" << std::endl;
@@ -235,7 +235,7 @@ void const Peer::AddClient(sockaddr_in& clientAddress)
 	AC.clientID = client.m_clientID;
 	AC.port = client.m_port;
 	Packet ACPacket;
-	ACPacket.Serialize(AC.firstByte, AC.clientID, AC.port);
+	ACPacket.Serialize(AC.realFirstByte, AC.firstByte, AC.clientID, AC.port);
 	UDPSendTo(ACPacket, client.m_ipAddress, client.m_port);
 
 	std::cout << "Sending connection acknowledgement to client." << std::endl;

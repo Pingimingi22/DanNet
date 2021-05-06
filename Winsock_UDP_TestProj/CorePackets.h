@@ -11,12 +11,14 @@
 
 struct ConnectionStruct
 {
+	int realFirstByte = (int)PacketPriority::RELIABLE_UDP;
 	int firstByte = (int)MessageIdentifier::CONNECT;
 	char ip[256];
 };
 
 struct ACKConnection
 {
+	int realFirstByte = (int)PacketPriority::RELIABLE_UDP;
 	int firstByte = (int)MessageIdentifier::ACK_CONNECT;
 	int clientID = -1;
 	unsigned short port = -1;

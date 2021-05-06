@@ -192,7 +192,7 @@ void UDPListener::Update()
 
 			
 			//m_attachedPeer->m_currentPacket = incomingPacket; // ------------------------> Telling the attached peer that we have received a packet. The user can do what they like with it.
-			if(m_attachedPeer->m_packetQueue.size() <= 0)
+			if(m_attachedPeer->m_packetQueue.size() <= 1)
 				m_attachedPeer->m_packetQueue.push_back(incomingPacket);
 
 			switch (m_attachedPeer->m_packetQueue[0]->GetPacketIdentifier())
@@ -207,7 +207,7 @@ void UDPListener::Update()
 			case MessageIdentifier::ACK_CONNECT:
 			{
 				ACKConnection AC;
-				incomingPacket->Deserialize(AC.firstByte, AC.clientID, AC.port);
+				incomingPacket->Deserialize(AC.realFirstByte, AC.firstByte, AC.clientID, AC.port);
 				m_attachedPeer->m_ID = AC.clientID;
 				std::cout << "Server has acknowledged our connection. Our client ID is: " << m_attachedPeer->m_ID << "." << std::endl;
 				delete m_attachedPeer->m_packetQueue[0];

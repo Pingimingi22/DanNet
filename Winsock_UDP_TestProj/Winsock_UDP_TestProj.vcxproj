@@ -152,6 +152,7 @@
     <ClInclude Include="CorePackets.h" />
     <ClInclude Include="MessageIdentifiers.h" />
     <ClInclude Include="Packet.h" />
+    <ClInclude Include="PacketPriorities.h" />
     <ClInclude Include="Peer.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="UDPListener.h" />
