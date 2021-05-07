@@ -143,6 +143,14 @@ Packet* Peer::UDPReceivePacket()
 void const Peer::UDPSend(Packet& packet)
 {
 	//Packet newPacket;
+
+
+	// With our new system of packet priority headers, we need to "seceretly" apply these headers to each packet. We do that here in the Send() functions.
+	// This send function will apply a header that specifies the message is not reliable and will set the integer in the header to be -1.
+
+
+
+	
 	m_udpListener.Send(packet);
 }
 

@@ -8,8 +8,12 @@
 #include "cereal/cereal.hpp"
 #include "cereal/archives/binary.hpp"
 
-Packet::Packet()
+Packet::Packet(PacketPriority priority)
 {
+	if (priority == PacketPriority::RELIABLE_UDP)
+	{
+		this->Serialize()
+	}
 }
 
 void Packet::Create()

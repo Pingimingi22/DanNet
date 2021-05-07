@@ -11,10 +11,19 @@
 
 #include "PacketPriorities.h"
 
+#include <stdint.h>
+
+#include "combaseapi.h"
+
 class Packet
 {
+	// Making peer a friend so that it can access SerializeInternal and DeserializeInternal.
+	friend class Peer;
+
+	int32_t something;
+
 public:
-	Packet();
+	Packet(PacketPriority priority);
 	void Create();
 	void Send();
 	void SendReliable();
@@ -90,6 +99,31 @@ public:
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------- //
 private:
+
+	void InternalHeaderSerialize(int Priority)
+	{
+		// I need to quickly serialize the header data before serializing the user's payload data.
+		// But I only know what to put in the header data after the user has already serialized their stuff.
+
+		cereal::BinaryOutputArchive outputArchive(m_recursiveStream);
+
+		GUID testGuid;
+		memset(&testGuid, -1, sizeof(GUID));
+
+
+		CoCreateGuid(&testGuid);
+		testGuid.
+
+
+		outputArchive();
+
+		
+
+		UserSerialize(args...);
+	}
+	void UserDeserialize();
+
+
 	static constexpr int maxPacketSize = 256;
 
 	void Write(int howManyBytes);
@@ -97,8 +131,13 @@ private:
 public:
 	// These probably shouldn't be public but it's easier this way to read things into these byte arrays all the way in the UDPListener.
 
-	char m_allBytes[maxPacketSize]; // idk 1024 bytes (1KB) seemed like a cool number to pick for the maximum amount in a "dan" packet.
+	char m_allBytes[maxPacketSize]; // idk 256 bytes (not 1KB) seemed like a cool number to pick for the maximum amount in a "dan" packet.
 				      // I think this is super low for today's standards but eh maybe it'll be cool having an old school networking library.
+
+	// To organise m
+	//char m_internalHeaderBytes[25];
+
+
 	std::stringstream m_readBytes[maxPacketSize];
 
 };
