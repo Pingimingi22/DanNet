@@ -11,6 +11,8 @@
 
 #include "CorePackets.h"
 
+
+
 Peer::Peer(bool server, unsigned short portNumber)
 {
 	WSADATA wsadata;
@@ -120,7 +122,8 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 	// --------------------------
 
 
-	m_udpListener.Send(*connectionPacket);
+	//m_udpListener.Send(*connectionPacket);
+	UDPSend(*connectionPacket);
 	delete connectionPacket;
 
 }
@@ -178,6 +181,7 @@ void Peer::UpdateReliableSends()
 	if (m_reliablePackets.size() > 0)
 	{
 		UDPSend(*m_reliablePackets[0]);
+		std::cout << "Send out all reliable udp packets again!." << std::endl;
 	}
 }
 

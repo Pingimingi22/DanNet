@@ -173,11 +173,27 @@ private:
 			//memcpy(&m_guid, &testGuid, sizeof(testGuid)); // giving the packet a cache of the guid so we can use it for easy comparisons in the UDPListener.
 			// Not sure if memcpy is safe but whatev lol
 		}
-		else if (Priority == (int)PacketPriority::RELIABLE_UDP && guid != nullptr) // This means the parsed in a GUID so we'll set this GUID to theirs. It's probably a server sending an ACK.
+		else if (guid != nullptr) // This means the parsed in a GUID so we'll set this GUID to theirs. It's probably a server sending an ACK.
 		{
-			memcpy(&testGuid, &guid, sizeof(guid)); // putting the stuff into our cache of testGuid.
-			memcpy(&m_guid, &testGuid, sizeof(testGuid)); // now putting it into the packet's cache.
-
+			//memcpy(&testGuid, &guid, sizeof(GUID)); // putting the stuff into our cache of testGuid.
+			testGuid.Data1 = guid->Data1;																			// ==================== NOTE ==================== //
+			testGuid.Data2 = guid->Data2;																			// Unfortunately memcpy doesn't work for copying  //
+			testGuid.Data3 = guid->Data3;																			// parts of one GUID struct to another so I'm     //
+			for (int i = 0; i < 8; i++)																				// doing it manually.                             //      
+			{																										// ============================================== //
+				testGuid.Data4[i] = guid->Data4[i];
+			}
+			//memcpy(&m_guid, &testGuid, sizeof(testGuid)); // now putting it into the packet's cache.
+			// 
+			// giving the packet of a copy of the guid in type form. So this is in addition to the binary that will get sent across.
+			// The packet's copy of the guid in type form is just used for easy comparisons elsewhere in the code base like in UDPListener.cpp.
+			m_guid.Data1 = guid->Data1;
+			m_guid.Data2 = guid->Data2;
+			m_guid.Data3 = guid->Data3;
+			for (int i = 0; i < 8; i++)
+			{
+				m_guid.Data4[i] = guid->Data4[i];
+			}
 		}
 
 		outputArchive(testGuid.Data1);
