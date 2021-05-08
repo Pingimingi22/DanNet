@@ -11,19 +11,28 @@
 
 #include "PacketPriorities.h"
 
-#include <stdint.h>
+//#include <stdint.h>
 
 #include "combaseapi.h"
+
 
 class Packet
 {
 	// Making peer a friend so that it can access SerializeInternal and DeserializeInternal.
 	friend class Peer;
+	friend class UDPListener;
 
 	int32_t something;
 
 public:
 	Packet(PacketPriority priority);
+
+private:
+	Packet() {} // We need a default constructor for Packet's because the UDPListener needs to be able to create a "generic" packet that it will fill in when it receives data.
+	Packet(PacketPriority priority, GUID guid); // Special constructor only to be used internally. NOT by the user. When the udp listener needs to send an ACK back, 
+		                                        //they will construct the packet with this constructor so they can hand pick the GUID.
+
+public:
 	void Create();
 	void Send();
 	void SendReliable();
@@ -35,6 +44,9 @@ public:
 	PacketPriority GetPacketPriority();
 	
 	MessageIdentifier GetPacketIdentifier(); // Only to be used after one byte has been read from the packet.
+
+	PacketPriority m_priority;
+	GUID m_guid;
 
 
 	// ----------------------------- Derserialize verdaic function unpacking technique in progress here! ----------------------------- //
@@ -60,7 +72,7 @@ public:
 	void Deserialize(T& first, Args& ... args)
 	{
 		//std::stringstream ss;										// ============================================================ NOTE ================================================================== //
-		m_recursiveStream.write(&m_allBytes[0], 256);				// kind of confused why this is even working. Realistically, I shouldn't be rewriting everything to the string stream each type this    //
+		//m_recursiveStream.write(&m_allBytes[0], 256);				// kind of confused why this is even working. Realistically, I shouldn't be rewriting everything to the string stream each type this    //
 																	// recursive function gets called. I think the Cereal library is saving me with it's really good input/output serialization functions.  //
 																	// ==================================================================================================================================== //
 		cereal::BinaryInputArchive iarchive(m_recursiveStream); 
@@ -100,7 +112,7 @@ public:
 	// ----------------------------------------------------------------------------------------------------------------------------------------- //
 private:
 
-	void InternalHeaderSerialize(int Priority)
+	void InternalHeaderSerialize(PacketPriority Priority, GUID* guid = nullptr)
 	{
 		// I need to quickly serialize the header data before serializing the user's payload data.
 		// But I only know what to put in the header data after the user has already serialized their stuff.
@@ -108,20 +120,47 @@ private:
 		cereal::BinaryOutputArchive outputArchive(m_recursiveStream);
 
 		GUID testGuid;
-		memset(&testGuid, -1, sizeof(GUID));
+		memset(&testGuid, 0, sizeof(GUID));
 
-
-		CoCreateGuid(&testGuid);
-		testGuid.
-
-
-		outputArchive();
 
 		
 
-		UserSerialize(args...);
+		// Serializing the packet priority.
+		outputArchive((int)Priority);
+		// Serializing the unique GUID. We only need to generate a GUID if the parsed in priority is reliable udp.
+		if (Priority == PacketPriority::RELIABLE_UDP && guid == nullptr) // This means they don't want a specific GUID, so we'll create a new one for them.
+		{
+			CoCreateGuid(&testGuid);
+			memcpy(&m_guid, &testGuid, sizeof(testGuid)); // giving the packet a cache of the guid so we can use it for easy comparisons in the UDPListener.
+			// Not sure if memcpy is safe but whatev lol
+		}
+		else if (Priority == PacketPriority::RELIABLE_UDP && guid != nullptr) // This means the parsed in a GUID so we'll set this GUID to theirs. It's probably a server sending an ACK.
+		{
+			memcpy(&testGuid, &guid, sizeof(guid)); // putting the stuff into our cache of testGuid.
+			memcpy(&m_guid, &testGuid, sizeof(testGuid)); // now putting it into the packet's cache.
+
+		}
+
+		outputArchive(testGuid.Data1);
+		outputArchive(testGuid.Data2);
+		outputArchive(testGuid.Data3);
+		outputArchive(testGuid.Data4);
+
 	}
-	void UserDeserialize();
+	void InternalHeaderDeserialize(PacketPriority& priority, GUID& guid)
+	{
+
+		m_recursiveStream.write(&m_allBytes[0], 256);
+
+		cereal::BinaryInputArchive inputArchive(m_recursiveStream);
+
+		inputArchive(priority);
+
+		inputArchive(guid.Data1);
+		inputArchive(guid.Data2);
+		inputArchive(guid.Data3);
+		inputArchive(guid.Data4);
+	}
 
 
 	static constexpr int maxPacketSize = 256;

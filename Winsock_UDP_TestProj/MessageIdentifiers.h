@@ -14,6 +14,7 @@ enum class MessageIdentifier
 	DISCONNECT = 1,
 	ECHO = 2,
 	REQUEST_GREETING = 3,
-	CUSTOM_USER_ENUM = 4
+	RELIABLE_UDP_ACK = 4,
+	CUSTOM_USER_ENUM = 5
 };
 

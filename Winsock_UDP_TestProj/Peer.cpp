@@ -1,5 +1,5 @@
-#include "UDPListener.h"
 #include "Peer.h"
+//#include "UDPListener.h"
 
 #include <string>
 
@@ -99,16 +99,16 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 
 	getsockname(m_hostSocket, (sockaddr*)&hostAddress, &hostSize);
 
-	Packet* connectionPacket = new Packet;
+	Packet* connectionPacket = new Packet(PacketPriority::RELIABLE_UDP);
 	ConnectionStruct connection;
 	//connection.ip = ntohl(hostAddress.sin_addr.S_un.S_addr);
 	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 256); // idk 256 is just random.
 	
-	connectionPacket->Serialize(connection.realFirstByte, connection.firstByte, connection.ip);
+	connectionPacket->Serialize(connection.firstByte, connection.ip);
 
 	// delete this just for testing.
 	ConnectionStruct testingConnection;
-	connectionPacket->Deserialize(testingConnection.realFirstByte, testingConnection.firstByte, testingConnection.ip);
+	connectionPacket->Deserialize(testingConnection.firstByte, testingConnection.ip);
 	std::cout << "=================================" << std::endl;
 	std::cout << testingConnection.firstByte << std::endl;
 	std::cout << "=================================" << std::endl;
@@ -148,7 +148,11 @@ void const Peer::UDPSend(Packet& packet)
 	// With our new system of packet priority headers, we need to "seceretly" apply these headers to each packet. We do that here in the Send() functions.
 	// This send function will apply a header that specifies the message is not reliable and will set the integer in the header to be -1.
 
-
+	if (packet.m_priority == PacketPriority::RELIABLE_UDP)
+	{
+		m_reliablePackets.push_back(&packet);
+		std::cout << " Added reliable packet to reliable packet queue." << std::endl;
+	}
 
 	
 	m_udpListener.Send(packet);
@@ -160,7 +164,7 @@ void Peer::UDPSendReliable(Packet& packet)
 	//m_udpListener.send
 	//std::thread reliableSendThread = std::thread
 	//while()
-	m_reliablePackets.push_back(&packet);
+	//m_reliablePackets.push_back(&packet);
 	std::cout << "Added a packet to the reliable send queue." << std::endl;
 }
 
@@ -174,6 +178,12 @@ void Peer::UpdateReliableSends()
 
 void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 {
+	if (packet.m_priority == PacketPriority::RELIABLE_UDP)
+	{
+		m_reliablePackets.push_back(&packet);
+		std::cout << " Added reliable packet to reliable packet queue." << std::endl;
+	}
+
 	m_udpListener.SendTo(packet, ipAddress, port);
 }
 
@@ -242,8 +252,8 @@ void const Peer::AddClient(sockaddr_in& clientAddress)
 	//AC.firstByte = (int)MessageIdentifier::ACK_CONNECT;
 	AC.clientID = client.m_clientID;
 	AC.port = client.m_port;
-	Packet ACPacket;
-	ACPacket.Serialize(AC.realFirstByte, AC.firstByte, AC.clientID, AC.port);
+	Packet ACPacket(PacketPriority::RELIABLE_UDP);
+	ACPacket.Serialize(AC.firstByte, AC.clientID, AC.port);
 	UDPSendTo(ACPacket, client.m_ipAddress, client.m_port);
 
 	std::cout << "Sending connection acknowledgement to client." << std::endl;

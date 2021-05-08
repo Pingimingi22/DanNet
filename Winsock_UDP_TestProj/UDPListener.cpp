@@ -107,6 +107,10 @@ void UDPListener::Close()
 void UDPListener::Update()
 {
 	
+	// Probably not the optimal place to have this since this is the "listener" but I think it'll work fine. maybe.
+	m_attachedPeer->UpdateReliableSends();
+
+
 	m_readReady = m_master;
 	timeval tv;
 	//tv.tv_sec = 5;
@@ -175,6 +179,31 @@ void UDPListener::Update()
 			//default:
 			//	break;
 			//}
+
+
+			// Now that we've added super secret internal header's to each packet, we have to remove them before we do anything else.
+			// =============================== REMOVING SUPER SERCRET INTERNAL HEADERS =============================== //
+			PacketPriority incomingPriority;
+			GUID incomingGuid;
+
+			incomingPacket->InternalHeaderDeserialize(incomingPriority, incomingGuid);
+
+			incomingPacket->m_priority = incomingPriority;
+
+			if (incomingPriority == PacketPriority::RELIABLE_UDP) // we need to send an acknowledgement back to whoever sent us this.
+			{
+				Packet ackPacket = Packet(PacketPriority::UNRELIABLE_UDP, incomingGuid); // the acknowledgement doesn't have to be reliable because if the client doesn't receive it, 
+				                                                                         // it will ask for another one anyway.
+				int ackPackIdentifier = (int)MessageIdentifier::RELIABLE_UDP_ACK;
+				ackPacket.Serialize(ackPackIdentifier);
+				char incomingIPString[15]; 
+				inet_ntop(AF_INET, &incomingClientAddress.sin_addr.S_un.S_addr, &incomingIPString[0], 25);
+				unsigned short incomingPort = ntohs(incomingClientAddress.sin_port);
+				SendTo(ackPacket, incomingIPString, incomingPort);
+			}
+			// ======================================================================================================= //
+
+
 			
 			MessageIdentifier testingIdentifier = incomingPacket->GetPacketIdentifier();
 			std::cout << "received something with a packet identifier of: " << (int)incomingPacket->GetPacketIdentifier() << std::endl;
@@ -197,6 +226,31 @@ void UDPListener::Update()
 
 			switch (m_attachedPeer->m_packetQueue[0]->GetPacketIdentifier())
 			{
+				// hopefully only server's only ever send RELIABLE_UDP_ACK's. this way we can ensure we are dealing with the client in this case.
+			case MessageIdentifier::RELIABLE_UDP_ACK: // this is for when the client receives an ACK and wants to verify if the ack's sequence number matches any of it's reliable packet sequence numbers.
+			{
+				for (int i = 0; i < m_attachedPeer->m_reliablePackets.size(); i++)
+				{
+					if (m_attachedPeer->m_reliablePackets[i]->m_guid.Data1 == incomingGuid.Data1 &&
+						m_attachedPeer->m_reliablePackets[i]->m_guid.Data2 == incomingGuid.Data2 &&
+						m_attachedPeer->m_reliablePackets[i]->m_guid.Data3 == incomingGuid.Data3 &&
+						m_attachedPeer->m_reliablePackets[i]->m_guid.Data4 == incomingGuid.Data4)
+					{
+						// The incoming guid matches one of the client's reliable packet guid's.
+
+						// I guess we can clear the reliable packet from the client since we know the server received the message.
+						m_attachedPeer->m_reliablePackets[i];
+						m_attachedPeer->m_reliablePackets.erase(m_attachedPeer->m_reliablePackets.begin() + i); // guess this is why containers start at 0, so you can do this cool trick.
+
+						std::cout << "One of our reliable UDP packet's was successfully acknowledged." << std::endl;
+
+						// Removing it from the packet queue so user's don't have to deal with this type of packet.
+						delete m_attachedPeer->m_packetQueue[0];
+						m_attachedPeer->m_packetQueue.erase(m_attachedPeer->m_packetQueue.begin());
+					}
+				}
+				break;
+			}
 			case MessageIdentifier::CONNECT:
 				m_attachedPeer->AddClient(incomingClientAddress);
 				std::cout << "Received connect packet. Attempting to add client." << std::endl;
@@ -207,7 +261,7 @@ void UDPListener::Update()
 			case MessageIdentifier::ACK_CONNECT:
 			{
 				ACKConnection AC;
-				incomingPacket->Deserialize(AC.realFirstByte, AC.firstByte, AC.clientID, AC.port);
+				incomingPacket->Deserialize(AC.firstByte, AC.clientID, AC.port);
 				m_attachedPeer->m_ID = AC.clientID;
 				std::cout << "Server has acknowledged our connection. Our client ID is: " << m_attachedPeer->m_ID << "." << std::endl;
 				delete m_attachedPeer->m_packetQueue[0];

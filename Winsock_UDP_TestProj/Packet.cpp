@@ -8,12 +8,20 @@
 #include "cereal/cereal.hpp"
 #include "cereal/archives/binary.hpp"
 
+
+
 Packet::Packet(PacketPriority priority)
 {
-	if (priority == PacketPriority::RELIABLE_UDP)
-	{
-		this->Serialize()
-	}
+
+	m_priority = priority;
+	InternalHeaderSerialize(priority); // applying internal headers to the packet.
+	
+}
+
+Packet::Packet(PacketPriority priority, GUID guid)
+{
+	m_priority = priority;
+	InternalHeaderSerialize(priority, &guid); // applying internal headers but with a specific GUID. used for sending ACK's.
 }
 
 void Packet::Create()
@@ -57,7 +65,8 @@ MessageIdentifier Packet::GetPacketIdentifier()
 	//return (MessageIdentifier)identifierNumeric;
 
 
-	int testIdentifier = (int)m_allBytes[sizeof(int)];
+	// The idea behind adding the size of an int and the size of a GUID is so that we go passed all my internal header data stuff and get to the packet type bytes.
+	int testIdentifier = (int)m_allBytes[sizeof(int) + sizeof(GUID) + sizeof(int)];
 	return (MessageIdentifier)testIdentifier;
 
 }
