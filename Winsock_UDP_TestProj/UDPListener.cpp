@@ -183,16 +183,16 @@ void UDPListener::Update()
 
 			// Now that we've added super secret internal header's to each packet, we have to remove them before we do anything else.
 			// =============================== REMOVING SUPER SERCRET INTERNAL HEADERS =============================== //
-			PacketPriority incomingPriority;
+			int incomingPriority;
 			GUID incomingGuid;
 
 			incomingPacket->InternalHeaderDeserialize(incomingPriority, incomingGuid);
 
-			incomingPacket->m_priority = incomingPriority;
+			incomingPacket->m_priority = (PacketPriority)incomingPriority;
 
-			if (incomingPriority == PacketPriority::RELIABLE_UDP) // we need to send an acknowledgement back to whoever sent us this.
+			if ((PacketPriority)incomingPriority == PacketPriority::RELIABLE_UDP) // we need to send an acknowledgement back to whoever sent us this.
 			{
-				Packet ackPacket = Packet(PacketPriority::UNRELIABLE_UDP, incomingGuid); // the acknowledgement doesn't have to be reliable because if the client doesn't receive it, 
+				Packet ackPacket = Packet((int)PacketPriority::UNRELIABLE_UDP, incomingGuid); // the acknowledgement doesn't have to be reliable because if the client doesn't receive it, 
 				                                                                         // it will ask for another one anyway.
 				int ackPackIdentifier = (int)MessageIdentifier::RELIABLE_UDP_ACK;
 				ackPacket.Serialize(ackPackIdentifier);

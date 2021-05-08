@@ -10,17 +10,17 @@
 
 
 
-Packet::Packet(PacketPriority priority)
+Packet::Packet(int priority)
 {
 
-	m_priority = priority;
+	m_priority = (PacketPriority)priority;
 	InternalHeaderSerialize(priority); // applying internal headers to the packet.
 	
 }
 
-Packet::Packet(PacketPriority priority, GUID guid)
+Packet::Packet(int priority, GUID guid)
 {
-	m_priority = priority;
+	m_priority = (PacketPriority)priority;
 	InternalHeaderSerialize(priority, &guid); // applying internal headers but with a specific GUID. used for sending ACK's.
 }
 

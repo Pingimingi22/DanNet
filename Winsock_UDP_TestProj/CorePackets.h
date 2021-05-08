@@ -11,8 +11,9 @@
 
 struct ConnectionStruct
 {
-	int firstByte = (int)MessageIdentifier::CONNECT;
-	char ip[256];
+	int firstByte = /*(int)MessageIdentifier::CONNECT*/ 21;
+	char ip[25];
+	// Changed ip from 256 bytes to 25 bytes. 256 bytes overloads our entire packet and causes issues with Cereal serialization.
 };
 
 struct ACKConnection

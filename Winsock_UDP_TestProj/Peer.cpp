@@ -99,15 +99,20 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 
 	getsockname(m_hostSocket, (sockaddr*)&hostAddress, &hostSize);
 
-	Packet* connectionPacket = new Packet(PacketPriority::RELIABLE_UDP);
+	Packet* connectionPacket = new Packet((int)PacketPriority::RELIABLE_UDP);
 	ConnectionStruct connection;
 	//connection.ip = ntohl(hostAddress.sin_addr.S_un.S_addr);
-	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 256); // idk 256 is just random.
+	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 25); // idk 256 is just random.
 	
 	connectionPacket->Serialize(connection.firstByte, connection.ip);
 
 	// delete this just for testing.
+	int testPacketPriority;
+	GUID testGuid;
+	connectionPacket->InternalHeaderDeserialize(testPacketPriority, testGuid);
+
 	ConnectionStruct testingConnection;
+	testingConnection.firstByte = 0;
 	connectionPacket->Deserialize(testingConnection.firstByte, testingConnection.ip);
 	std::cout << "=================================" << std::endl;
 	std::cout << testingConnection.firstByte << std::endl;
@@ -252,7 +257,7 @@ void const Peer::AddClient(sockaddr_in& clientAddress)
 	//AC.firstByte = (int)MessageIdentifier::ACK_CONNECT;
 	AC.clientID = client.m_clientID;
 	AC.port = client.m_port;
-	Packet ACPacket(PacketPriority::RELIABLE_UDP);
+	Packet ACPacket((int)PacketPriority::RELIABLE_UDP);
 	ACPacket.Serialize(AC.firstByte, AC.clientID, AC.port);
 	UDPSendTo(ACPacket, client.m_ipAddress, client.m_port);
 
