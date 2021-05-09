@@ -110,19 +110,22 @@ void UDPListener::Update()
 	// Probably not the optimal place to have this since this is the "listener" but I think it'll work fine. maybe.
 	m_attachedPeer->UpdateReliableSends();
 
+	
 
 	m_readReady = m_master;
 	timeval tv;
-	//tv.tv_sec = 5;
-	//tv.tv_usec = 0;
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
 
-	if (select(m_hostSocket, &m_readReady, NULL, NULL, NULL) == -1)
+	if (select(m_hostSocket, &m_readReady, NULL, NULL, &tv) == -1)
 	{
 		std::cerr << "select() error." << std::endl;
 	}
 	
 	if (FD_ISSET(m_hostSocket, &m_readReady))
 	{
+		//std::cout << "Update test" << std::endl;
+
 		char recvBuffer[256];
 		Packet* incomingPacket = new Packet();
 
@@ -247,6 +250,9 @@ void UDPListener::Update()
 						// Removing it from the packet queue so user's don't have to deal with this type of packet.
 						delete m_attachedPeer->m_packetQueue[0];
 						m_attachedPeer->m_packetQueue.erase(m_attachedPeer->m_packetQueue.begin());
+
+						// =================================== WARNING =================================== //
+						// Maybe we shouldn't delete packets from the queue here, since the message identifier checks delete packets we don't want to accidentally try to delete something twice.
 					}
 				}
 				break;

@@ -124,7 +124,7 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 
 	//m_udpListener.Send(*connectionPacket);
 	UDPSend(*connectionPacket);
-	delete connectionPacket;
+	//delete connectionPacket;
 
 }
 
@@ -180,8 +180,21 @@ void Peer::UpdateReliableSends()
 {
 	if (m_reliablePackets.size() > 0)
 	{
-		UDPSend(*m_reliablePackets[0]);
-		std::cout << "Send out all reliable udp packets again!." << std::endl;
+		for (int i = 0; i < m_reliablePackets.size(); i++)
+		{
+			if(!m_reliablePackets[i]->m_isTimerStarted)
+				m_reliablePackets[i]->StartPacketTimer();
+
+			m_reliablePackets[i]->CheckPacketTimer();
+			m_reliablePackets[i]->GetTimeDuration();
+
+			if (m_reliablePackets[i]->m_elapsedMilliseconds >= 5000) // sends every .5 seconds.
+			{
+				m_udpListener.Send(*m_reliablePackets[i]);                                       // ================================== IMPORTANT NOTE ================================== // 
+				std::cout << "Sent out a reliable udp packet again!." << std::endl;				 // The reason why I'm using m_udpListener.Send() instead of UDPSend() is because UDPSend()
+				m_reliablePackets[i]->StopPacketTimer();										 // will add the packet to the packet queue, and since we are "re-sending" packets, we would
+			}																					 // keep duplicating packet's if we used UDPSend().
+		}
 	}
 }
 
@@ -239,7 +252,13 @@ void Peer::Update()
 {
 	while (m_udpListener.IsRunning())
 	{
+		//std::cout << "Update test" << std::endl;
 		m_udpListener.Update();
+	}
+
+	if (!m_udpListener.IsRunning())
+	{
+		std::cout << "hey" << std::endl;
 	}
 }
 

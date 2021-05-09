@@ -9,12 +9,12 @@
  
 enum class MessageIdentifier
 {
-	CONNECT = 0, // client sends connect.
-	ACK_CONNECT, // server sends acknowledgement.
-	DISCONNECT = 1,
-	ECHO = 2,
-	REQUEST_GREETING = 3,
-	RELIABLE_UDP_ACK = 4,
-	CUSTOM_USER_ENUM = 5
+	CONNECT = 9, // client sends connect.
+	ACK_CONNECT = 1, // server sends acknowledgement.
+	DISCONNECT = 2,
+	ECHO = 3,
+	REQUEST_GREETING = 4,
+	RELIABLE_UDP_ACK = 5,
+	CUSTOM_USER_ENUM = 6
 };
 

@@ -36,6 +36,29 @@ void Packet::SendReliable()
 {
 }
 
+void Packet::StartPacketTimer()
+{
+	m_startTime = std::chrono::system_clock::now();
+	m_isTimerStarted = true;
+}
+
+void Packet::CheckPacketTimer()
+{
+	m_endTime = std::chrono::system_clock::now();
+}
+
+void Packet::GetTimeDuration()
+{
+	// We better hope we've set the start and end times before we call this function.
+	m_elapsedMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(m_endTime - m_startTime).count();
+}
+
+void Packet::StopPacketTimer()
+{
+	m_isTimerStarted = false; // resetting the boolean so we can start the timer again in the update function.
+	m_elapsedMilliseconds = 0; // resetting elapsed milliseconds to avoid errors.
+}
+
 void Packet::Clear()
 {
 	delete this;
@@ -64,9 +87,28 @@ MessageIdentifier Packet::GetPacketIdentifier()
 	//int identifierNumeric = int(identifier);
 	//return (MessageIdentifier)identifierNumeric;
 
+	// Testing deserializing to get the packet identifier.
+	std::stringstream testStream;
+	testStream.write(&m_allBytes[0], 256);
 
+	cereal::BinaryInputArchive testInputArchive(testStream);
+
+	int thingWeDontCareAbout1;
+	GUID thingWeDontCareAbout2;
+	memset(&thingWeDontCareAbout2, 0, sizeof(GUID));
+	int packetIdentifier;
+	testInputArchive(thingWeDontCareAbout1, thingWeDontCareAbout2.Data1, thingWeDontCareAbout2.Data2, thingWeDontCareAbout2.Data3);
+	for (int i = 0; i < 8; i++)
+	{
+		testInputArchive(thingWeDontCareAbout2.Data4[i]);
+	}
+
+	testInputArchive(packetIdentifier);
 	// The idea behind adding the size of an int and the size of a GUID is so that we go passed all my internal header data stuff and get to the packet type bytes.
-	int testIdentifier = (int)m_allBytes[sizeof(int) + sizeof(GUID) + sizeof(int)];
-	return (MessageIdentifier)testIdentifier;
+	int testIdentifier = (int)m_allBytes[sizeof(int) + 16 ];
+	//return (MessageIdentifier)testIdentifier;
+
+	// new packet identifier that probably wont work!
+	return (MessageIdentifier)packetIdentifier;
 
 }

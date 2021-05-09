@@ -15,6 +15,7 @@
 
 #include "combaseapi.h"
 
+#include <chrono>
 
 class Packet
 {
@@ -37,6 +38,27 @@ public:
 	void Send();
 	void SendReliable();
 
+	// --------------------------------------------------- RELIABLE UDP TIMER STUFF --------------------------------------------------- //
+
+	// - Every packet will have the ability to set and use these timers but I will only use them for the packets in the reliable packet queue.
+	// - The reason I'm using chrono stedy_clock instead of system_clock is because system_clock can be changed by the user at any time.
+
+	// To be used when sending reliable udp packets. Starting a packet's timer will set it's start time. We can then choose to send out packets which have counted "x" amount of seconds.
+	void StartPacketTimer();
+	// Sets the m_endTime of the timer so we can get the different between end and start to calculate how long it's been.
+	void CheckPacketTimer();
+	// Gets the difference between when we started the timer and when we ended it. Set's the value of m_elapsedMilliseconds.
+	void GetTimeDuration();
+
+	void StopPacketTimer();
+
+	std::chrono::time_point<std::chrono::system_clock> m_startTime;
+	std::chrono::time_point<std::chrono::system_clock> m_endTime; // Not necessarily always the true end point. It's mostly going to be used to test if the current time has elapsed a certain amount of seconds.
+
+	bool m_isTimerStarted = false;
+
+	double m_elapsedMilliseconds = 0;
+	// -------------------------------------------------------------------------------------------------------------------------------- //
 
 	void Clear();
 	
@@ -102,8 +124,8 @@ public:
 	template<typename T>
 	void Serialize(T& t)
 	{
-		//cereal::BinaryOutputArchive outputArchive(m_recursiveStream);
-		//outputArchive(t);
+		cereal::BinaryOutputArchive outputArchive(m_recursiveStream);
+		outputArchive(t);
 
 		//testOutput->operator()(t);
 
@@ -215,6 +237,8 @@ private:
 		//m_recursiveStream.clear(); // important. the deserialization step can't happen unless we free up our recursiveStream.
 
 	}
+
+	public:
 	void InternalHeaderDeserialize(int& priority, GUID& guid)
 	{
 
@@ -244,7 +268,7 @@ private:
 
 	}
 
-
+	private:
 	static constexpr int maxPacketSize = 256;
 
 	void Write(int howManyBytes);
