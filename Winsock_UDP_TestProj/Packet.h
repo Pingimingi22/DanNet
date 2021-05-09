@@ -32,6 +32,51 @@ private:
 	Packet() {} // We need a default constructor for Packet's because the UDPListener needs to be able to create a "generic" packet that it will fill in when it receives data.
 	Packet(int priority, GUID guid); // Special constructor only to be used internally. NOT by the user. When the udp listener needs to send an ACK back, 
 		                                        //they will construct the packet with this constructor so they can hand pick the GUID.
+public:
+	Packet(const Packet& otherPacket)
+	{
+		this->m_priority = otherPacket.m_priority;
+		for (int i = 0; i < 15; i++)
+		{
+			this->m_destinationIP[i] = otherPacket.m_destinationIP[i];
+		}
+		this->m_destinationPort = otherPacket.m_destinationPort;
+
+		this->m_guid.Data1 = otherPacket.m_guid.Data1;
+		this->m_guid.Data2 = otherPacket.m_guid.Data2;
+		this->m_guid.Data3 = otherPacket.m_guid.Data3;
+
+		for (int i = 0; i < 8; i++)
+		{
+			this->m_guid.Data4[i] = otherPacket.m_guid.Data4[i];
+		}
+
+		memcpy(&this->m_allBytes[0], &otherPacket.m_allBytes[0], 256);
+		
+	}
+
+	Packet operator=(Packet otherPacket)
+	{
+		this->m_priority = otherPacket.m_priority;
+		for (int i = 0; i < 15; i++)
+		{
+			this->m_destinationIP[i] = otherPacket.m_destinationIP[i];
+		}
+		this->m_destinationPort = otherPacket.m_destinationPort;
+
+		this->m_guid.Data1 = otherPacket.m_guid.Data1;
+		this->m_guid.Data2 = otherPacket.m_guid.Data2;
+		this->m_guid.Data3 = otherPacket.m_guid.Data3;
+
+		for (int i = 0; i < 8; i++)
+		{
+			this->m_guid.Data4[i] = otherPacket.m_guid.Data4[i];
+		}
+
+		memcpy(&this->m_allBytes[0], &otherPacket.m_allBytes[0], 256);
+
+		return *this;
+	}
 
 public:
 	void Create();
@@ -59,6 +104,12 @@ public:
 
 	double m_elapsedMilliseconds = 0;
 	// -------------------------------------------------------------------------------------------------------------------------------- //
+
+	// ----------------- STUFF FOR RELIABLE UDP WITH SERVERS ----------------- //
+	// Because server's don't "connect" they can't use the regular Send() function but right now reliable udp packets are continusously sent with Send(). I need a way to cache the ip address
+	// so I can use SendTo() instead.
+	char m_destinationIP[15];
+	unsigned short m_destinationPort;
 
 	void Clear();
 	

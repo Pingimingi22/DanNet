@@ -101,7 +101,7 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 
 	getsockname(m_hostSocket, (sockaddr*)&hostAddress, &hostSize);
 
-	Packet* connectionPacket = new Packet((int)PacketPriority::RELIABLE_UDP);
+	Packet* connectionPacket = new Packet((int)PacketPriority::UNRELIABLE_UDP);
 	ConnectionStruct connection;
 	//connection.ip = ntohl(hostAddress.sin_addr.S_un.S_addr);
 	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 25); // idk 256 is just random.
@@ -158,7 +158,7 @@ void const Peer::UDPSend(Packet& packet)
 
 	if (packet.m_priority == PacketPriority::RELIABLE_UDP)
 	{
-		m_reliablePackets.push_back(&packet);
+		m_reliablePackets.push_back(packet);
 		std::cout << " Added reliable packet to reliable packet queue." << std::endl;
 	}
 
@@ -182,18 +182,33 @@ void Peer::UpdateReliableSends()
 	{
 		for (int i = 0; i < m_reliablePackets.size(); i++)
 		{
-			if(!m_reliablePackets[i]->m_isTimerStarted)
-				m_reliablePackets[i]->StartPacketTimer();
+			if(!m_reliablePackets[i].m_isTimerStarted)
+				m_reliablePackets[i].StartPacketTimer();
 
-			m_reliablePackets[i]->CheckPacketTimer();
-			m_reliablePackets[i]->GetTimeDuration();
+			m_reliablePackets[i].CheckPacketTimer();
+			m_reliablePackets[i].GetTimeDuration();
 
-			if (m_reliablePackets[i]->m_elapsedMilliseconds >= 5000) // sends every .5 seconds.
+			if (m_reliablePackets[i].m_elapsedMilliseconds >= 2000) // sends every .5 seconds.
 			{
-				m_udpListener.Send(*m_reliablePackets[i]);                                       // ================================== IMPORTANT NOTE ================================== // 
-				std::cout << "Sent out a reliable udp packet again!." << std::endl;				 // The reason why I'm using m_udpListener.Send() instead of UDPSend() is because UDPSend()
-				m_reliablePackets[i]->StopPacketTimer();										 // will add the packet to the packet queue, and since we are "re-sending" packets, we would
-			}																					 // keep duplicating packet's if we used UDPSend().
+				MessageIdentifier type = m_reliablePackets[i].GetPacketIdentifier();
+				
+				if (!m_isServer) // if we're not the server we're probably connected so we can use Send()
+				{
+					m_udpListener.Send(m_reliablePackets[i]);																		 // ================================== IMPORTANT NOTE ================================== // 
+					std::cout << "Sent out a reliable udp packet with Send() again of type [" << (int)type << "]." << std::endl;	 // The reason why I'm using m_udpListener.Send() instead of UDPSend() is because UDPSend()
+					m_reliablePackets[i].StopPacketTimer();																		 // will add the packet to the packet queue, and since we are "re-sending" packets, we would
+				}																													 // keep duplicating packet's if we used UDPSend().
+				
+				else // otherwise this is the server and we have to use the SendTo() function.
+				{
+					m_udpListener.SendTo(m_reliablePackets[i], m_reliablePackets[i].m_destinationIP, m_reliablePackets[i].m_destinationPort);														
+					std::cout << "Sent out a reliable udp packet with SendTo() again of type [" << (int)type << "]." << std::endl;	 
+					m_reliablePackets[i].StopPacketTimer();
+				}
+				
+
+
+			}																										 
 		}
 	}
 }
@@ -202,7 +217,13 @@ void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 {
 	if (packet.m_priority == PacketPriority::RELIABLE_UDP)
 	{
-		m_reliablePackets.push_back(&packet);
+		if (m_isServer) // If we are the server let's cache the destination ip address and port into this packet so we can continously send it in the reliable udp update function.
+		{
+			strcpy_s(packet.m_destinationIP, ipAddress);
+			packet.m_destinationPort = port;
+		}
+
+		m_reliablePackets.push_back(packet);
 		std::cout << " Added reliable packet to reliable packet queue." << std::endl;
 	}
 
@@ -211,10 +232,38 @@ void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 
 void const Peer::UDPSendToAll(Packet& packet)
 {
-	for (int i = 0; i < m_connectedClients.size(); i++)
-	{
-		UDPSendTo(packet, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
-	}
+	// there is an issue when sending a packet to everyone and that is you are sending 1 packet with 1 guid to everyone. if anyone client ack's the packet, you clear it from the reliable packet queue.
+	// really each packet should have a unique GUID which is what I'm going to try do here.
+
+	//int priority;
+	//GUID originalGUID;
+	//
+	//packet.InternalHeaderDeserialize(priority, originalGUID);
+	//
+	//// but of course we only want a unique GUID if they are sending a reliable UDP packet.
+	//if (priority == int(PacketPriority::RELIABLE_UDP))
+	//{
+	//	Packet uniquePacket(priority);
+	//	// to get the binary data from the original packet into this one, i'm gonna try memcpy.
+	//	memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
+	//
+	//	for (int i = 0; i < m_connectedClients.size(); i++)
+	//	{
+	//		UDPSendTo(uniquePacket, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
+	//	}
+	//
+	//}
+
+	// just send the normal packet if they don't care about reliability.
+	//else
+	//{
+		for (int i = 0; i < m_connectedClients.size(); i++)
+		{
+			UDPSendTo(packet, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
+		}
+	//}
+
+
 }
 
 /// <summary>
@@ -273,18 +322,20 @@ void const Peer::AddClient(sockaddr_in& clientAddress)
 
 	m_connectedClients.push_back(client);
 
-	std::cout << "Client connected! Client IP: " << client.m_ipAddress << " Port: " << client.m_port << " ID No. " << client.m_clientID << "." << std::endl;
+	std::cout << std::endl;
+	std::cout << "==== Client connected! Client IP: " << client.m_ipAddress << " Port: " << client.m_port << " ID No. " << client.m_clientID << "." << "====" << std::endl;
 
 	// Letting the client know that we've accepted their connection.
 	ACKConnection AC;
 	//AC.firstByte = (int)MessageIdentifier::ACK_CONNECT;
 	AC.clientID = client.m_clientID;
 	AC.port = client.m_port;
-	Packet ACPacket((int)PacketPriority::RELIABLE_UDP);
+	Packet ACPacket((int)PacketPriority::UNRELIABLE_UDP);
 	ACPacket.Serialize(AC.firstByte, AC.clientID, AC.port);
 	UDPSendTo(ACPacket, client.m_ipAddress, client.m_port);
 
 	std::cout << "Sending connection acknowledgement to client." << std::endl;
+	std::cout << std::endl;
 }
 
 void Peer::RemoveClient(char* ipAddress)

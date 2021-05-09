@@ -67,7 +67,7 @@ private:
 	std::vector<Packet*> m_packetQueue;
 
 	// This is a container of the packet's we want to make sure get sent. We only remove them from this container after we receive an acknowledgement from the server.
-	std::vector<Packet*> m_reliablePackets;
+	std::vector<Packet> m_reliablePackets;
 
 
 	// should be empty if we're not the server.

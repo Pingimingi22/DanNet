@@ -9,7 +9,7 @@
  
 enum class MessageIdentifier
 {
-	CONNECT = 9, // client sends connect.
+	CONNECT = 0, // client sends connect.
 	ACK_CONNECT = 1, // server sends acknowledgement.
 	DISCONNECT = 2,
 	ECHO = 3,

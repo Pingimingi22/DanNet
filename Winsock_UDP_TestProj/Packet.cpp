@@ -105,7 +105,7 @@ MessageIdentifier Packet::GetPacketIdentifier()
 
 	testInputArchive(packetIdentifier);
 	// The idea behind adding the size of an int and the size of a GUID is so that we go passed all my internal header data stuff and get to the packet type bytes.
-	int testIdentifier = (int)m_allBytes[sizeof(int) + 16 ];
+	//int testIdentifier = (int)m_allBytes[sizeof(int) + 16 ];
 	//return (MessageIdentifier)testIdentifier;
 
 	// new packet identifier that probably wont work!
