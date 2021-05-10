@@ -271,6 +271,9 @@ void UDPListener::Update()
 								}
 								std::cout << std::endl;
 								std::cout << "======================================" << std::endl;
+
+
+								std::lock_guard<std::mutex> guard(*m_attachedPeer->m_reliablePacketMutex.get()); // Maybe we are reading in and erasing at the same time and that might be what is causing issues.
 								m_attachedPeer->m_reliablePackets.erase(m_attachedPeer->m_reliablePackets.begin() + i); // guess this is why containers start at 0, so you can do this cool trick.
 
 
@@ -298,10 +301,10 @@ void UDPListener::Update()
 			case MessageIdentifier::CONNECT:
 				if (m_attachedPeer->m_packetQueue.size() <= 1)
 				{
-
-
+					std::cout << std::endl;
+					std::cout << "=============================== NEW CLIENT ATTEMPTING TO CONNECT =============================== " << std::endl;
 					m_attachedPeer->AddClient(incomingClientAddress);
-					std::cout << "Received connect packet. Attempting to add client." << std::endl;
+					//std::cout << "Received connect packet. Attempting to add client." << std::endl;
 					//delete m_attachedPeer->m_packetQueue[0];
 					//m_attachedPeer->m_packetQueue.erase(m_attachedPeer->m_packetQueue.begin());
 					//return;
@@ -326,7 +329,7 @@ void UDPListener::Update()
 					m_attachedPeer->m_packetQueue.push_back(incomingPacket);
 					MessageIdentifier testingIdentifier = incomingPacket->GetPacketIdentifier();
 					std::cout << std::endl;
-					std::cout << "Received a packet with an identifier of: " << (int)incomingPacket->GetPacketIdentifier() << std::endl;
+					std::cout << "Received a non core packet with an identifier of: " << (int)incomingPacket->GetPacketIdentifier() << std::endl;
 					std::cout << std::endl;
 				}
 				break;

@@ -21,6 +21,17 @@ Peer::Peer(bool server, unsigned short portNumber)
 	// initialising my test mutex.
 	m_packetMutex = std::make_unique<std::mutex>();
 
+	m_reliablePacketMutex = std::make_unique<std::mutex>();
+
+
+	// testing reserving spaces for our std::vector's since I'm having memory issues.
+	m_reliablePackets.reserve(10);
+	if (server) // we will only have connected client's if we are the server, so no point reserving space if we are the client.
+	{
+		m_connectedClients.reserve(10);
+	}
+	m_packetQueue.reserve(10);
+
 
 	if (result != 0)
 	{
@@ -158,6 +169,7 @@ void const Peer::UDPSend(Packet& packet)
 
 	if (packet.m_priority == PacketPriority::RELIABLE_UDP)
 	{
+		std::lock_guard<std::mutex> guard(*m_reliablePacketMutex);
 		m_reliablePackets.push_back(packet);
 		std::cout << " Added reliable packet to reliable packet queue." << std::endl;
 	}
@@ -188,7 +200,7 @@ void Peer::UpdateReliableSends()
 			m_reliablePackets[i].CheckPacketTimer();
 			m_reliablePackets[i].GetTimeDuration();
 
-			if (m_reliablePackets[i].m_elapsedMilliseconds >= 2000) // sends every .5 seconds.
+			if (m_reliablePackets[i].m_elapsedMilliseconds >= 5000) // sends every .5 seconds.
 			{
 				MessageIdentifier type = m_reliablePackets[i].GetPacketIdentifier();
 				
@@ -223,6 +235,7 @@ void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 			packet.m_destinationPort = port;
 		}
 
+		std::lock_guard<std::mutex> guard(*m_reliablePacketMutex);
 		m_reliablePackets.push_back(packet);
 		std::cout << " Added reliable packet to reliable packet queue." << std::endl;
 	}
@@ -235,33 +248,48 @@ void const Peer::UDPSendToAll(Packet& packet)
 	// there is an issue when sending a packet to everyone and that is you are sending 1 packet with 1 guid to everyone. if anyone client ack's the packet, you clear it from the reliable packet queue.
 	// really each packet should have a unique GUID which is what I'm going to try do here.
 
-	//int priority;
-	//GUID originalGUID;
-	//
-	//packet.InternalHeaderDeserialize(priority, originalGUID);
-	//
-	//// but of course we only want a unique GUID if they are sending a reliable UDP packet.
-	//if (priority == int(PacketPriority::RELIABLE_UDP))
-	//{
-	//	Packet uniquePacket(priority);
-	//	// to get the binary data from the original packet into this one, i'm gonna try memcpy.
-	//	memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
-	//
-	//	for (int i = 0; i < m_connectedClients.size(); i++)
-	//	{
-	//		UDPSendTo(uniquePacket, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
-	//	}
-	//
-	//}
+	int priority;
+	GUID originalGUID;
+	
+	packet.InternalHeaderDeserialize(priority, originalGUID);
+	
+	// but of course we only want a unique GUID if they are sending a reliable UDP packet.
+	if (priority == int(PacketPriority::RELIABLE_UDP))
+	{
+		
+	
+		for (int i = 0; i < m_connectedClients.size(); i++)
+		{
+			Packet uniquePacket(priority);
+			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
+			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
+
+			memcpy(&uniquePacket.m_destinationIP[0], &packet.m_destinationIP[0], 15);
+
+			uniquePacket.m_destinationPort = packet.m_destinationPort;
+
+			uniquePacket.m_guid.Data1 = packet.m_guid.Data1;
+			uniquePacket.m_guid.Data2 = packet.m_guid.Data2;
+			uniquePacket.m_guid.Data3 = packet.m_guid.Data3;
+
+			for (int x = 0; x < 8; x++)
+			{
+				uniquePacket.m_guid.Data4[x] = packet.m_guid.Data4[x];
+			}
+
+			UDPSendTo(uniquePacket, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
+		}
+	
+	}
 
 	// just send the normal packet if they don't care about reliability.
-	//else
-	//{
+	else
+	{
 		for (int i = 0; i < m_connectedClients.size(); i++)
 		{
 			UDPSendTo(packet, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
 		}
-	//}
+	}
 
 
 }
@@ -332,9 +360,9 @@ void const Peer::AddClient(sockaddr_in& clientAddress)
 	AC.port = client.m_port;
 	Packet ACPacket((int)PacketPriority::UNRELIABLE_UDP);
 	ACPacket.Serialize(AC.firstByte, AC.clientID, AC.port);
+	std::cout << "Sending connection acknowledgement to client." << std::endl;
 	UDPSendTo(ACPacket, client.m_ipAddress, client.m_port);
 
-	std::cout << "Sending connection acknowledgement to client." << std::endl;
 	std::cout << std::endl;
 }
 
