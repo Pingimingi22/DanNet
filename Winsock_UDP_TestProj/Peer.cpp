@@ -200,7 +200,7 @@ void Peer::UpdateReliableSends()
 			m_reliablePackets[i].CheckPacketTimer();
 			m_reliablePackets[i].GetTimeDuration();
 
-			if (m_reliablePackets[i].m_elapsedMilliseconds >= 5000) // sends every .5 seconds.
+			if (m_reliablePackets[i].m_elapsedMilliseconds >= 2000) // sends every .5 seconds.
 			{
 				MessageIdentifier type = m_reliablePackets[i].GetPacketIdentifier();
 				
