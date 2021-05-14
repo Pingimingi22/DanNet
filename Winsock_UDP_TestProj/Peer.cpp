@@ -325,6 +325,20 @@ ClientStruct Peer::GetClient(int id)
 	assert(true);
 }
 
+void Peer::SimulateLag(bool isSimulate, float lagInMilliseconds)
+{
+	if (!isSimulate)
+	{
+		m_isLagSimulation = true;
+		m_lagInMilliseconds = lagInMilliseconds;
+	}
+	else
+	{
+		m_isLagSimulation = false;
+		m_lagInMilliseconds = 0;
+	}
+}
+
 void Peer::Update()
 {
 	while (m_udpListener.IsRunning())
