@@ -175,6 +175,7 @@ void const Peer::UDPSend(Packet& packet)
 	}
 
 	
+
 	m_udpListener.Send(packet);
 }
 
@@ -232,8 +233,9 @@ void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 	{
 		if (m_isServer) // If we are the server let's cache the destination ip address and port into this packet so we can continously send it in the reliable udp update function.
 		{
-			strcpy_s(packet.m_destinationIP, ipAddress);
-			packet.m_destinationPort = port;
+			//strcpy_s(packet.m_destinationIP, ipAddress);
+			//packet.m_destinationPort = port;
+			packet.SetDestination(ipAddress, port);
 		}
 
 		std::lock_guard<std::mutex> guard(*m_reliablePacketMutex);
@@ -273,9 +275,10 @@ void const Peer::UDPSendToAll(Packet& packet)
 			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
 			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
 
-			memcpy(&uniquePacket.m_destinationIP[0], &packet.m_destinationIP[0], 15);
+			//memcpy(&uniquePacket.m_destinationIP[0], &packet.m_destinationIP[0], 15);
+			//uniquePacket.m_destinationPort = packet.m_destinationPort;
 
-			uniquePacket.m_destinationPort = packet.m_destinationPort;
+			uniquePacket.SetDestination(packet.m_destinationIP, packet.m_destinationPort);
 
 			uniquePacket.m_guid.Data1 = packet.m_guid.Data1;
 			uniquePacket.m_guid.Data2 = packet.m_guid.Data2;
@@ -306,9 +309,10 @@ void const Peer::UDPSendToAll(Packet& packet)
 			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
 			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
 
-			memcpy(&uniquePacket.m_destinationIP[0], &packet.m_destinationIP[0], 15);
+			//memcpy(&uniquePacket.m_destinationIP[0], &packet.m_destinationIP[0], 15);
+			//uniquePacket.m_destinationPort = packet.m_destinationPort;
 
-			uniquePacket.m_destinationPort = packet.m_destinationPort;
+			uniquePacket.SetDestination(packet.m_destinationIP, packet.m_destinationPort);
 
 			uniquePacket.m_guid.Data1 = packet.m_guid.Data1;
 			uniquePacket.m_guid.Data2 = packet.m_guid.Data2;

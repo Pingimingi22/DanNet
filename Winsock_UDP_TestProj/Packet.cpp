@@ -62,7 +62,7 @@ void Packet::StopPacketTimer()
 
 void Packet::SetDestination(const char* ipAddress, unsigned short portNumber)
 {
-	memcpy(&m_allBytes[0], ipAddress, 15);
+	strcpy_s(m_destinationIP, ipAddress);
 	m_destinationPort = portNumber;
 	m_hasSpecifiedDestination = true;
 }
