@@ -110,6 +110,7 @@ void UDPListener::Update()
 	// Probably not the optimal place to have this since this is the "listener" but I think it'll work fine. maybe.
 	m_attachedPeer->UpdateReliableSends();
 
+	m_attachedPeer->UpdateLagSends();
 	
 
 	m_readReady = m_master;

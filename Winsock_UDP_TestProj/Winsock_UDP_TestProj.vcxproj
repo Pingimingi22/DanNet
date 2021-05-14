@@ -143,8 +143,6 @@
   <ItemGroup>
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="Peer.cpp" />
-    <ClCompile Include="EntryPoint.cpp" />
-    <ClCompile Include="Server.cpp" />
     <ClCompile Include="UDPListener.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -154,7 +152,6 @@
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketPriorities.h" />
     <ClInclude Include="Peer.h" />
-    <ClInclude Include="Server.h" />
     <ClInclude Include="UDPListener.h" />
     <ClInclude Include="WinsockHeader.h" />
   </ItemGroup>

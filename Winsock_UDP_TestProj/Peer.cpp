@@ -389,17 +389,8 @@ void Peer::SimulateLag(bool isSimulate, float lagInMilliseconds)
 	// Because reliable UDP packet's are already in a queue of their own which gets released on a timer, to simulate lag we will only put unreliable packets into the lag queue and let reliable packet's go into
 	// their reliable udp queue. To make reliable packets "lag", I'm going to set the re-transmission rate of reliable udp packets to match the simulated lag time passed in.
 
-
-	if (!isSimulate)
-	{
-		m_isLagSimulation = true;
-		m_lagInMilliseconds = lagInMilliseconds;
-	}
-	else
-	{
-		m_isLagSimulation = false;
-		m_lagInMilliseconds = 0;
-	}
+	m_isLagSimulation = isSimulate;
+	m_lagInMilliseconds = lagInMilliseconds;
 }
 
 void Peer::UpdateLagSends()
@@ -437,6 +428,7 @@ void Peer::UpdateLagSends()
 					// Removing packet from the queue since we've sent it out an no longer need to track it.
 					std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
 					m_lagPacketQueue.erase(m_lagPacketQueue.begin() + i); // Removing the packet that just sent.
+					i--;
 				}																													 
 
 				else // otherwise this is the server and we have to use the SendTo() function.
@@ -448,6 +440,7 @@ void Peer::UpdateLagSends()
 					// Removing packet from the queue since we've sent it out an no longer need to track it.
 					std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
 					m_lagPacketQueue.erase(m_lagPacketQueue.begin() + i); // Removing the packet that just sent.
+					i--;
 				}
 
 			}
