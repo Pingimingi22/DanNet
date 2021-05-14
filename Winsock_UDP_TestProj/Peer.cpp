@@ -200,7 +200,8 @@ void Peer::UpdateReliableSends()
 			m_reliablePackets[i].CheckPacketTimer();
 			m_reliablePackets[i].GetTimeDuration();
 
-			if (m_reliablePackets[i].m_elapsedMilliseconds >= 2000) // sends every .5 seconds.
+
+			if (m_reliablePackets[i].m_elapsedMilliseconds >= RELIABLE_UDP_RETRANSMISSION_RATE) 
 			{
 				MessageIdentifier type = m_reliablePackets[i].GetPacketIdentifier();
 				
@@ -285,8 +286,27 @@ void const Peer::UDPSendToAll(Packet& packet)
 	// just send the normal packet if they don't care about reliability.
 	else
 	{
+	
 		for (int i = 0; i < m_connectedClients.size(); i++)
 		{
+			Packet uniquePacket(priority);
+			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
+			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
+
+			memcpy(&uniquePacket.m_destinationIP[0], &packet.m_destinationIP[0], 15);
+
+			uniquePacket.m_destinationPort = packet.m_destinationPort;
+
+			uniquePacket.m_guid.Data1 = packet.m_guid.Data1;
+			uniquePacket.m_guid.Data2 = packet.m_guid.Data2;
+			uniquePacket.m_guid.Data3 = packet.m_guid.Data3;
+
+			for (int x = 0; x < 8; x++)
+			{
+				uniquePacket.m_guid.Data4[x] = packet.m_guid.Data4[x];
+			}
+
+
 			UDPSendTo(packet, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
 		}
 	}
@@ -327,6 +347,14 @@ ClientStruct Peer::GetClient(int id)
 
 void Peer::SimulateLag(bool isSimulate, float lagInMilliseconds)
 {
+	// There are two core things to consider when attempting to simulate lag. We need to put all packets into some sort of queue and time their "release". But there are two types of packets, reliable and
+	// unreliable udp packets. Reliable packets don't get stored anywhere and we can just throw them into a lag queue and send them out slowly, but UDP packets get sent out initially like unreliable packets,
+	// but are then put into their own reliable UDP queue. The reliable udp queue has it's owner timer stuff going on to time the release of the re-transmission of packets.
+
+	// Because reliable UDP packet's are already in a queue of their own which gets released on a timer, to simulate lag we will only put unreliable packets into the lag queue and let reliable packet's go into
+	// their reliable udp queue. To make reliable packets "lag", I'm going to set the re-transmission rate of reliable udp packets to match the simulated lag time passed in.
+
+
 	if (!isSimulate)
 	{
 		m_isLagSimulation = true;

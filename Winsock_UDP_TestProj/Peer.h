@@ -10,6 +10,8 @@
 
 #include <mutex>
 
+#define RELIABLE_UDP_RETRANSMISSION_RATE 2000 
+
 class UDPListener;
 class Packet;
 
