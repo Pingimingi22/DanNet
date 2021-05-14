@@ -241,7 +241,15 @@ void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 		std::cout << " Added reliable packet to reliable packet queue." << std::endl;
 	}
 
-	m_udpListener.SendTo(packet, ipAddress, port);
+	// If the packet is reliable and we want to simulate lag, we don't want to send the packet straight away. We want to wait for the retransmission that way it sends out slower.
+	if (m_isLagSimulation && packet.m_priority == PacketPriority::RELIABLE_UDP)
+	{
+		return;
+	}
+	else // Otherwise, just send it.
+	{
+		m_udpListener.SendTo(packet, ipAddress, port);
+	}
 }
 
 void const Peer::UDPSendToAll(Packet& packet)
@@ -289,6 +297,11 @@ void const Peer::UDPSendToAll(Packet& packet)
 	
 		for (int i = 0; i < m_connectedClients.size(); i++)
 		{
+
+			// ----------- Making a unique packet with it's own unique GUID ----------- //
+			// Techanically we don't need to send unique packet's since GUID's wont even be checked if it's not a reliable packet.
+			// ------------------------------------------------------------------------ //
+
 			Packet uniquePacket(priority);
 			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
 			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
@@ -306,6 +319,7 @@ void const Peer::UDPSendToAll(Packet& packet)
 				uniquePacket.m_guid.Data4[x] = packet.m_guid.Data4[x];
 			}
 
+			// ------------------------------------------------------------------------ //
 
 			UDPSendTo(packet, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
 		}

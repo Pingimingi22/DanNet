@@ -60,6 +60,13 @@ void Packet::StopPacketTimer()
 	m_elapsedMilliseconds = 0; // resetting elapsed milliseconds to avoid errors.
 }
 
+void Packet::SetDestination(const char* ipAddress, unsigned short portNumber)
+{
+	memcpy(&m_allBytes[0], ipAddress, 15);
+	m_destinationPort = portNumber;
+	m_hasSpecifiedDestination = true;
+}
+
 void Packet::Clear()
 {
 	delete this;

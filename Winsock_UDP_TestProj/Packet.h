@@ -110,6 +110,12 @@ public:
 	// so I can use SendTo() instead.
 	char m_destinationIP[15];
 	unsigned short m_destinationPort;
+
+	
+	bool m_hasSpecifiedDestination;
+
+	// Set's the m_destinationIP and m_destinationPort so that I don't have to do it manually. This function will also set m_hasSpecifiedDestination to true which will mean DanNet will send with SendTo() rather than Send() in some places.
+	void SetDestination(const char* ipAddress, unsigned short portNumber);
 	// ----------------------------------------------------------------------- //
 
 
