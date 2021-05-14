@@ -173,12 +173,25 @@ void const Peer::UDPSend(Packet& packet)
 	{
 		std::lock_guard<std::mutex> guard(*m_reliablePacketMutex);
 		m_reliablePackets.push_back(packet);
-		std::cout << " Added reliable packet to reliable packet queue." << std::endl;
+		std::cout << "Added reliable packet to reliable packet queue." << std::endl;
 	}
 
-	
+	// We only want to add packets to the lag queue if they are:
+	// - Not reliable.
+	// - The peer is set to simulate lag.
+	else if (m_isLagSimulation)
+	{
+		std::lock_guard<std::mutex> lagPacketGaurd(*m_lagPacketMutex.get());
+		m_lagPacketQueue.push_back(packet);
+		std::cout << "Added a packet to the lag packet queue." << std::endl;
+	}
 
-	m_udpListener.Send(packet);
+
+	// If the peer is attempting to simulate lag, we don't want to immediately send, we want to make sure it's as slow as possible.
+	if (!m_isLagSimulation)
+	{
+		m_udpListener.Send(packet);
+	}
 }
 
 void Peer::UDPSendReliable(Packet& packet)
@@ -242,15 +255,17 @@ void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 
 		std::lock_guard<std::mutex> guard(*m_reliablePacketMutex);
 		m_reliablePackets.push_back(packet);
-		std::cout << " Added reliable packet to reliable packet queue." << std::endl;
+		std::cout << "Added reliable packet to reliable packet queue." << std::endl;
 	}
 
-	// If the packet is reliable and we want to simulate lag, we don't want to send the packet straight away. We want to wait for the retransmission that way it sends out slower.
-	if (m_isLagSimulation && packet.m_priority == PacketPriority::RELIABLE_UDP)
+	// If the packet is unreliable and we want to simulate lag, we'll put it in the lag packet queue.
+	else if (m_isLagSimulation)
 	{
-		return;
+		std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
+		m_lagPacketQueue.push_back(packet);
+		std::cout << "Added a packet to the lag packet queue." << std::endl;
 	}
-	else // Otherwise, just send it.
+	if(!m_isLagSimulation) // If we aren't simulating lag, send out a packet instantly without waiting for reliable UDP re-transmission.
 	{
 		m_udpListener.SendTo(packet, ipAddress, port);
 	}
