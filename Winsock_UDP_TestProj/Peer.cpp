@@ -444,6 +444,10 @@ void Peer::UpdateLagSends()
 					m_udpListener.SendTo(m_lagPacketQueue[i], m_lagPacketQueue[i].m_destinationIP, m_lagPacketQueue[i].m_destinationPort);
 					std::cout << "Sent out a laggy udp packet with SendTo() of type [" << (int)type << "]." << std::endl;
 					m_lagPacketQueue[i].StopPacketTimer();
+
+					// Removing packet from the queue since we've sent it out an no longer need to track it.
+					std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
+					m_lagPacketQueue.erase(m_lagPacketQueue.begin() + i); // Removing the packet that just sent.
 				}
 
 			}
