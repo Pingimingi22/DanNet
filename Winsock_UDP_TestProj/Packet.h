@@ -31,7 +31,7 @@ public:
 private:
 	Packet() {} // We need a default constructor for Packet's because the UDPListener needs to be able to create a "generic" packet that it will fill in when it receives data.
 	Packet(int priority, GUID guid); // Special constructor only to be used internally. NOT by the user. When the udp listener needs to send an ACK back, 
-		                                        //they will construct the packet with this constructor so they can hand pick the GUID.
+		                             //they will construct the packet with this constructor so they can hand pick the GUID.
 public:
 	Packet(const Packet& otherPacket)
 	{
@@ -81,7 +81,7 @@ public:
 public:
 	void Create();
 	void Send();
-	void SendReliable();
+	//void SendReliable(); DEPRECATED
 
 	// --------------------------------------------------- RELIABLE UDP TIMER STUFF --------------------------------------------------- //
 
@@ -110,14 +110,20 @@ public:
 	// so I can use SendTo() instead.
 	char m_destinationIP[15];
 	unsigned short m_destinationPort;
+	// ----------------------------------------------------------------------- //
 
-	void Clear();
+
+
+	void Clear(); // I don't know why I made this function, it was supposed to be called to delete packet's but I feel like calling delete explicitily is easier for others to read.
 	
 
+	// GetPacketPriority() gets the first four bytes (the true first four bytes, this should only ever be used internally and never by the user.)
 	PacketPriority GetPacketPriority();
-	
+
+	// GetPacketIndentifier() gets the first four bytes for the user. It will return the type of packet in enum form.
 	MessageIdentifier GetPacketIdentifier(); // Only to be used after one byte has been read from the packet.
 
+	// To help with things, packets cache their priority and guid to make it easier for other functions to utilise without having to deserialise m_bytes.
 	PacketPriority m_priority;
 	GUID m_guid;
 
@@ -226,8 +232,7 @@ private:
 		memset(&testGuid, 0, sizeof(GUID));
 
 
-		
-
+	
 		// Serializing the packet priority.
 		outputArchive(Priority);
 		//testOutput->operator()(Priority);
@@ -328,7 +333,7 @@ public:
 	// These probably shouldn't be public but it's easier this way to read things into these byte arrays all the way in the UDPListener.
 
 	char m_allBytes[maxPacketSize]; // idk 256 bytes (not 1KB) seemed like a cool number to pick for the maximum amount in a "dan" packet.
-				      // I think this is super low for today's standards but eh maybe it'll be cool having an old school networking library.
+							        // I think this is super low for today's standards but eh maybe it'll be cool having an old school networking library.
 
 	// To organise m
 	//char m_internalHeaderBytes[25];

@@ -32,9 +32,10 @@ void Packet::Send()
 {
 }
 
-void Packet::SendReliable()
-{
-}
+// This has been deprecated. To send reliable udp packets, you use regular send commabds but pass in a packet that has a reliable priority set.
+//void Packet::SendReliable()
+//{
+//}
 
 void Packet::StartPacketTimer()
 {
