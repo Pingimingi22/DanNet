@@ -84,9 +84,17 @@ public:
 	//void SendReliable(); DEPRECATED
 
 	// --------------------------------------------------- RELIABLE UDP TIMER STUFF --------------------------------------------------- //
+	// ---------------------------------------------------      IMPORTANT NOTE      --------------------------------------------------- //
+	//		I'll try use this timer stuff for lag send outs aswell. So these timers will be used for unreliable packets if the			//
+	//		user wants to simulate lag.							
+	//
+	//		Because we are using the same variables for both sending out reliable and laggy packets, reliable packets CANNOT be
+	//      in both the UpdateReliablePackets() function and UpdateLagSends() function since the variables will write over each other.
+	//	    Right now the idea is that reliable packets will NOT be placed in the m_lagPacketQueue so there shouldn't be any issues.
+	// -------------------------------------------------------------------------------------------------------------------------------- //
 
-	// - Every packet will have the ability to set and use these timers but I will only use them for the packets in the reliable packet queue.
-	// - The reason I'm using chrono stedy_clock instead of system_clock is because system_clock can be changed by the user at any time.
+	// - Every packet will have the ability to set and use these timers but I will only use them for the packets in the reliable packet queue (not anymore, also laggy packets will use it).
+	// - The reason I'm using chrono steady_clock instead of system_clock is because system_clock can be changed by the user at any time. (using system_clock for now, have to run some tests on steady_clock.)
 
 	// To be used when sending reliable udp packets. Starting a packet's timer will set it's start time. We can then choose to send out packets which have counted "x" amount of seconds.
 	void StartPacketTimer();

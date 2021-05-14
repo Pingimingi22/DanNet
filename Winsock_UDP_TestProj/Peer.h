@@ -50,6 +50,7 @@ public:
 
 
 	void SimulateLag(bool isSimulate, float lagInMilliseconds = 0);
+	void UpdateLagSends();
 
 
 private:
@@ -88,7 +89,8 @@ private:
 
 
 	// ----------------- Lag simulation stuff. ----------------- //
-	std::vector<Packet> m_packetLagQueue;
+	std::unique_ptr<std::mutex> m_lagPacketMutex;
+	std::vector<Packet> m_lagPacketQueue;
 	float m_lagInMilliseconds = 0;
 	bool m_isLagSimulation = false;
 
