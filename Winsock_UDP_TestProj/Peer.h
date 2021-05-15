@@ -51,7 +51,7 @@ public:
 	ClientStruct GetClient(int id);
 
 
-	void SimulateLag(bool isSimulate, float lagInMilliseconds = 0);
+	void SimulateLag(bool isSimulate, double lagInMilliseconds = 0);
 	void UpdateLagSends();
 
 
