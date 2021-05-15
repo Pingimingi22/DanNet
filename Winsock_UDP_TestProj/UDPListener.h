@@ -25,12 +25,11 @@ public:
 
 	void const Receive(const char* buffer);
 
-	//void SendReliable(Packet packet);
-
 	// Sends to the connected peer.
 	void Send(Packet& packet);
 	// Server's can use this to send things to specific clients without being "connected" to them.
 	void SendTo(Packet& packet, char* ipAddress, unsigned short port);
+
 
 	void DisplaySettings();
 
