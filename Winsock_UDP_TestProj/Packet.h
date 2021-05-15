@@ -52,6 +52,12 @@ public:
 		}
 
 		memcpy(&this->m_allBytes[0], &otherPacket.m_allBytes[0], 256);
+
+		this->m_elapsedMilliseconds = otherPacket.m_elapsedMilliseconds;
+		this->m_hasSpecifiedDestination = otherPacket.m_hasSpecifiedDestination;
+		this->m_isTimerStarted = otherPacket.m_isTimerStarted;
+		this->m_startTime = std::chrono::time_point<std::chrono::system_clock>(otherPacket.m_startTime);
+		this->m_endTime = std::chrono::time_point<std::chrono::system_clock>(otherPacket.m_endTime);
 		
 	}
 
@@ -74,6 +80,13 @@ public:
 		}
 
 		memcpy(&this->m_allBytes[0], &otherPacket.m_allBytes[0], 256);
+
+		this->m_elapsedMilliseconds = otherPacket.m_elapsedMilliseconds;
+		this->m_hasSpecifiedDestination = otherPacket.m_hasSpecifiedDestination;
+		this->m_isTimerStarted = otherPacket.m_isTimerStarted;
+		this->m_startTime = std::chrono::time_point<std::chrono::system_clock>(otherPacket.m_startTime);
+		this->m_endTime = std::chrono::time_point<std::chrono::system_clock>(otherPacket.m_endTime);
+		
 
 		return *this;
 	}
@@ -120,7 +133,7 @@ public:
 	unsigned short m_destinationPort;
 
 	
-	bool m_hasSpecifiedDestination;
+	bool m_hasSpecifiedDestination = false;
 
 	// Set's the m_destinationIP and m_destinationPort so that I don't have to do it manually. This function will also set m_hasSpecifiedDestination to true which will mean DanNet will send with SendTo() rather than Send() in some places.
 	void SetDestination(const char* ipAddress, unsigned short portNumber);

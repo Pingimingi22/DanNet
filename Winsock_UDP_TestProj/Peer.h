@@ -11,11 +11,13 @@
 #include <mutex>
 
 #define RELIABLE_UDP_RETRANSMISSION_RATE 2000 
-
-class UDPListener;
-class Packet;
-
-class Peer
+#define MAX_LAG_PACKET_QUEUE_SIZE 100				// ================================== IMPORTANT ===================================== //
+#define MAX_RELIABLE_PACKET_QUEUE_SIZE 100			// These two defines are important because of having to reserve space for the packet  //
+													// vectors. If we don't reserve space, dynamic allocation will kick in and ruin       //
+class UDPListener;									// everything due to multithreading issues with writing/iterating at the same time.   //
+class Packet;										// ================================================================================== //
+													
+class Peer												
 {
 public:
 	friend class UDPListener;
@@ -91,7 +93,7 @@ private:
 	// ----------------- Lag simulation stuff. ----------------- //
 	std::unique_ptr<std::mutex> m_lagPacketMutex;
 	std::vector<Packet> m_lagPacketQueue;
-	float m_lagInMilliseconds = 0;
+	double m_lagInMilliseconds = 0;
 	bool m_isLagSimulation = false;
 
 

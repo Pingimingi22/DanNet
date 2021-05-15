@@ -34,6 +34,8 @@ Peer::Peer(bool server, unsigned short portNumber)
 	}
 	m_packetQueue.reserve(10);
 
+	//m_lagPacketQueue.reserve(50);
+
 
 	if (result != 0)
 	{
@@ -405,6 +407,7 @@ void Peer::UpdateLagSends()
 
 	if (m_lagPacketQueue.size() > 0)										
 	{
+		std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
 		for (int i = 0; i < m_lagPacketQueue.size(); i++)
 		{
 			if (!m_lagPacketQueue[i].m_isTimerStarted)
@@ -420,25 +423,25 @@ void Peer::UpdateLagSends()
 
 				if (!m_isServer) // if we're not the server we're probably connected so we can use Send()
 				{
+					//std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex);
 					m_udpListener.Send(m_lagPacketQueue[i]);																		 // ================================== IMPORTANT NOTE ================================== // 
 					std::cout << "Sent out a laggy udp packet with Send() of type [" << (int)type << "]." << std::endl;				 // The reason why I'm using m_udpListener.Send() instead of UDPSend() is because UDPSend()
 					m_lagPacketQueue[i].StopPacketTimer();																		     // will add the packet to the packet queue, and since we are "re-sending" packets, we would
 																																	 // keep duplicating packet's if we used UDPSend().																			
 
 					// Removing packet from the queue since we've sent it out an no longer need to track it.
-					std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
 					m_lagPacketQueue.erase(m_lagPacketQueue.begin() + i); // Removing the packet that just sent.
 					i--;
 				}																													 
 
 				else // otherwise this is the server and we have to use the SendTo() function.
 				{
+					//std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
 					m_udpListener.SendTo(m_lagPacketQueue[i], m_lagPacketQueue[i].m_destinationIP, m_lagPacketQueue[i].m_destinationPort);
 					std::cout << "Sent out a laggy udp packet with SendTo() of type [" << (int)type << "]." << std::endl;
 					m_lagPacketQueue[i].StopPacketTimer();
 
 					// Removing packet from the queue since we've sent it out an no longer need to track it.
-					std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
 					m_lagPacketQueue.erase(m_lagPacketQueue.begin() + i); // Removing the packet that just sent.
 					i--;
 				}
