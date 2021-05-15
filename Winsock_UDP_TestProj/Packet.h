@@ -23,8 +23,6 @@ class Packet
 	friend class Peer;
 	friend class UDPListener;
 
-	int32_t something;
-
 public:
 	Packet(int priority);
 
@@ -92,9 +90,6 @@ public:
 	}
 
 public:
-	void Create();
-	void Send();
-	//void SendReliable(); DEPRECATED
 
 	// --------------------------------------------------- RELIABLE UDP TIMER STUFF --------------------------------------------------- //
 	// ---------------------------------------------------      IMPORTANT NOTE      --------------------------------------------------- //
@@ -140,9 +135,6 @@ public:
 	// ----------------------------------------------------------------------- //
 
 
-
-	void Clear(); // I don't know why I made this function, it was supposed to be called to delete packet's but I feel like calling delete explicitily is easier for others to read.
-	
 
 	// GetPacketPriority() gets the first four bytes (the true first four bytes, this should only ever be used internally and never by the user.)
 	PacketPriority GetPacketPriority();

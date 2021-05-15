@@ -24,18 +24,6 @@ Packet::Packet(int priority, GUID guid)
 	InternalHeaderSerialize(priority, &guid); // applying internal headers but with a specific GUID. used for sending ACK's.
 }
 
-void Packet::Create()
-{
-}
-
-void Packet::Send()
-{
-}
-
-// This has been deprecated. To send reliable udp packets, you use regular send commabds but pass in a packet that has a reliable priority set.
-//void Packet::SendReliable()
-//{
-//}
 
 void Packet::StartPacketTimer()
 {
@@ -67,10 +55,6 @@ void Packet::SetDestination(const char* ipAddress, unsigned short portNumber)
 	m_hasSpecifiedDestination = true;
 }
 
-void Packet::Clear()
-{
-	delete this;
-}
 
 void Packet::Write(int howManyBytes)
 {
