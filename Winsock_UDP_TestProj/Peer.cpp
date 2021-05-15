@@ -272,6 +272,8 @@ void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 	// If the packet is unreliable and we want to simulate lag, we'll put it in the lag packet queue.
 	else if (m_isLagSimulation && m_lagPacketQueue.size() < MAX_LAG_PACKET_QUEUE_SIZE)
 	{
+		packet.SetDestination(ipAddress, port); // Setting the ip and port of the packet so it knows where to go.
+
 		std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
 		m_lagPacketQueue.push_back(packet);
 		std::cout << "Added a packet to the lag packet queue." << std::endl;
