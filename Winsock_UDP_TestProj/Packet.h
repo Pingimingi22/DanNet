@@ -24,6 +24,7 @@ class Packet
 	friend class UDPListener;
 
 public:
+	// With our new system of packet priority headers, we need to "seceretly" apply these headers to each packet. We do that here in the constructors.
 	Packet(int priority);
 
 private:

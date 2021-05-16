@@ -107,10 +107,8 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 	m_serverConnection = serverAddress;
 	std::cout << "Attempting to connection to " << ipAddress << " on port: " << portNumber << std::endl;
 
-	// ============ TODO ============= MAKE IT SO THE SERVER GETS A CONNECTION TO THE CLIENT.
 
 	// ------------------------------- Sending the server a Connection packet which contains our IP ------------------------------- //
-
 	sockaddr_in hostAddress;
 	int hostSize = sizeof(sockaddr_in);
 
@@ -118,29 +116,12 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 
 	Packet connectionPacket = Packet((int)PacketPriority::UNRELIABLE_UDP);
 	ConnectionStruct connection;
-	//connection.ip = ntohl(hostAddress.sin_addr.S_un.S_addr);
 	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 25); // idk 256 is just random.
 	
 	connectionPacket.Serialize(connection.firstByte, connection.ip);
 
-	// delete this just for testing.
-	int testPacketPriority;
-	GUID testGuid;
-	connectionPacket.InternalHeaderDeserialize(testPacketPriority, testGuid);
 
-	ConnectionStruct testingConnection;
-	testingConnection.firstByte = 0;
-	connectionPacket.Deserialize(testingConnection.firstByte, testingConnection.ip);
-	std::cout << "=================================" << std::endl;
-	std::cout << testingConnection.firstByte << std::endl;
-	std::cout << "=================================" << std::endl;
-	// --------------------------
-
-
-	//m_udpListener.Send(*connectionPacket);
 	UDPSend(connectionPacket);
-	//delete connectionPacket;
-
 }
 
 /// <summary>
@@ -155,6 +136,9 @@ Packet* Peer::UDPReceivePacket()
 	//// if the udp listener has given us a real packet, we can give the user that.
 	//return m_currentPacket;
 
+
+	// New system that involves the packet queue.
+
 	if (m_packetQueue.size() == 0)
 	{
 		return nullptr;
@@ -165,11 +149,6 @@ Packet* Peer::UDPReceivePacket()
 
 void const Peer::UDPSend(Packet& packet)
 {
-	//Packet newPacket;
-
-
-	// With our new system of packet priority headers, we need to "seceretly" apply these headers to each packet. We do that here in the Send() functions.
-	// This send function will apply a header that specifies the message is not reliable and will set the integer in the header to be -1.
 
 	if (packet.m_priority == PacketPriority::RELIABLE_UDP)
 	{
@@ -194,16 +173,6 @@ void const Peer::UDPSend(Packet& packet)
 	{
 		m_udpListener.Send(packet);
 	}
-}
-
-void Peer::UDPSendReliable(Packet& packet)
-{
-	// TODO actually make this thing.
-	//m_udpListener.send
-	//std::thread reliableSendThread = std::thread
-	//while()
-	//m_reliablePackets.push_back(&packet);
-	std::cout << "Added a packet to the reliable send queue." << std::endl;
 }
 
 void Peer::UpdateReliableSends()
@@ -374,7 +343,7 @@ void Peer::FlushCurrentPacket()
 
 	if (m_packetQueue[0] != nullptr)
 	{
-		delete m_packetQueue[0];
+		delete m_packetQueue[0]; // ============================= ASK FINN ============================= Do we have to delete or will erase take care of it for us? 
 		m_packetQueue.erase(m_packetQueue.begin());
 	}
 
@@ -472,7 +441,7 @@ void Peer::Update()
 
 	if (!m_udpListener.IsRunning())
 	{
-		std::cout << "hey" << std::endl;
+		std::cout << "UDPListener shutting down..." << std::endl;
 	}
 }
 

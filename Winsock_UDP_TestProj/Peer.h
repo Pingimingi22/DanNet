@@ -33,16 +33,14 @@ public:
 
 	// These two Send() functions are to be used after a client is connected to a server. They require that a connection has been established.
 	void const UDPSend(Packet& packet);
-	void UDPSendReliable(Packet& packet);
-	void UpdateReliableSends();
-
 	// This Send() function can be used to send things to specific clients if you are the server.
 	void const UDPSendTo(Packet& packet, char* ipAddress, unsigned short port);
-	void const UDPSendToReliable(Packet& packet, char* ipAddress, unsigned short port);
-
 	void const UDPSendToAll(Packet& packet);
-	void UDPSendReliableToAll();
-	
+
+	void UpdateReliableSends();
+
+
+
 	// Clears the packet first in the packet queue.
 	void FlushCurrentPacket();
 
@@ -57,7 +55,7 @@ public:
 
 private:
 	void Update();
-	//Peer CreatePeer(bool server = false, unsigned short portNumber = NULL); // i guess this is gonna be a factory method.
+
 
 	// Only to be used if the peer is the server.
 	void const AddClient(sockaddr_in& clientAddress);
