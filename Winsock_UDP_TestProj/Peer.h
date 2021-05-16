@@ -111,6 +111,11 @@ private:
 	std::chrono::time_point<std::chrono::system_clock> m_aliveSendStart;
 	std::chrono::time_point<std::chrono::system_clock> m_aliveSendEnd;
 
+	// Mutex for m_connectedClients std::vector since we iterate and erase on two seperate threads.
+	std::unique_ptr<std::mutex> m_connectedClientsMutex;
+	
+
+
 
 
 	// -------------------- Threading stuff -------------------- //

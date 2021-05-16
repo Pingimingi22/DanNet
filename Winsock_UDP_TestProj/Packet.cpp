@@ -37,7 +37,7 @@ void Packet::CheckPacketTimer()
 void Packet::GetTimeDuration()
 {
 	// We better hope we've set the start and end times before we call this function.
-	m_elapsedMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(m_endTime - m_startTime).count();
+	m_elapsedMilliseconds = (double)std::chrono::duration_cast<std::chrono::milliseconds>(m_endTime - m_startTime).count();
 }
 
 void Packet::StopPacketTimer()

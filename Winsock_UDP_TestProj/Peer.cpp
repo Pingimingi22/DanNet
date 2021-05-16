@@ -25,6 +25,8 @@ Peer::Peer(bool server, unsigned short portNumber)
 
 	m_lagPacketMutex = std::make_unique<std::mutex>();
 
+	m_connectedClientsMutex = std::make_unique<std::mutex>();
+	// -------------------------------------------------------------
 
 	// testing reserving spaces for our std::vector's since I'm having memory issues.
 	m_reliablePackets.reserve(MAX_RELIABLE_PACKET_QUEUE_SIZE);
@@ -340,6 +342,7 @@ void Peer::FlushCurrentPacket()
 
 Client* Peer::GetClient(int id)
 {
+	std::lock_guard<std::mutex> clientGuard(*m_connectedClientsMutex.get());
 	for (int i = 0; i < m_connectedClients.size(); i++)
 	{
 		if (m_connectedClients[i].m_clientID == id)
@@ -472,6 +475,7 @@ void Peer::TimeoutUpdate()
 						}
 					}
 
+					std::lock_guard<std::mutex> clientGuard(*m_connectedClientsMutex.get());
 					m_connectedClients.erase(m_connectedClients.begin() + i);
 
 				}
@@ -492,7 +496,7 @@ void Peer::SendAlive()
 	else // Otherwise, we have started the timer and we should be checking if the timer reaches the required threshold.
 	{
 		m_aliveSendEnd = std::chrono::system_clock::now();
-		double elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(m_aliveSendEnd - m_aliveSendStart).count();
+		double elapsedTime = (double)std::chrono::duration_cast<std::chrono::milliseconds>(m_aliveSendEnd - m_aliveSendStart).count();
 
 		if (elapsedTime >= m_aliveSendOutTime)
 		{

@@ -17,6 +17,8 @@
 
 #include <chrono>
 
+#include <assert.h>
+
 class Packet
 {
 	// Making peer a friend so that it can access SerializeInternal and DeserializeInternal.
@@ -260,7 +262,9 @@ private:
 		// Serializing the unique GUID. We only need to generate a GUID if the parsed in priority is reliable udp.
 		if (Priority == (int)PacketPriority::RELIABLE_UDP && guid == nullptr) // This means they don't want a specific GUID, so we'll create a new one for them.
 		{
-			CoCreateGuid(&testGuid);
+			HRESULT hresult = CoCreateGuid(&testGuid);
+			assert(hresult == S_OK); // Making sure it actually returns a GUID successfully.
+
 			m_guid.Data1 = testGuid.Data1;
 			m_guid.Data2 = testGuid.Data2;
 			m_guid.Data3 = testGuid.Data3;

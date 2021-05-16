@@ -17,7 +17,7 @@ bool Client::CheckTimer(double requiredMilliseconds)
 {
 	// Calculate the elapsed time so we can check it.
 	m_endTime = std::chrono::system_clock::now();
-	m_elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(m_endTime - m_startTime).count();
+	m_elapsedTime = (double)std::chrono::duration_cast<std::chrono::milliseconds>(m_endTime - m_startTime).count();
 
 	if (m_elapsedTime >= requiredMilliseconds)
 		return true;

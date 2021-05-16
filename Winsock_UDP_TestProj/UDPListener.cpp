@@ -121,7 +121,7 @@ void UDPListener::Update()
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 
-	if (select(m_hostSocket, &m_readReady, NULL, NULL, &tv) == -1)
+	if (select((int)m_hostSocket, &m_readReady, NULL, NULL, &tv) == -1)
 	{
 		std::cerr << "select() error." << std::endl;
 	}
@@ -129,9 +129,6 @@ void UDPListener::Update()
 	Packet* incomingPacket = new Packet();
 	if (FD_ISSET(m_hostSocket, &m_readReady))
 	{
-		char recvBuffer[256];
-
-
 		// temporary cache of incoming client address.
 		sockaddr_in incomingClientAddress;
 		int incomingClientSize;
@@ -160,7 +157,7 @@ void UDPListener::Update()
 					int ackPackIdentifier = (int)MessageIdentifier::RELIABLE_UDP_ACK;
 					ackPacket.Serialize(ackPackIdentifier);
 					char incomingIPString[15]; 
-					inet_ntop(AF_INET, &incomingClientAddress.sin_addr.S_un.S_addr, &incomingIPString[0], 25);
+					inet_ntop(AF_INET, &incomingClientAddress.sin_addr.S_un.S_addr, &incomingIPString[0], 15);
 					unsigned short incomingPort = ntohs(incomingClientAddress.sin_port);
 					SendTo(ackPacket, incomingIPString, incomingPort);
 				}
