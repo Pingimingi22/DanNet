@@ -126,7 +126,7 @@ public:
 	// Because server's don't "connect" they can't use the regular Send() function but right now reliable udp packets are continusously sent with Send(). I need a way to cache the ip address
 	// so I can use SendTo() instead.
 	char m_destinationIP[15];
-	unsigned short m_destinationPort;
+	unsigned short m_destinationPort = 0; // Initializing to 0 to suppress warning.
 
 	
 	bool m_hasSpecifiedDestination = false;
@@ -144,8 +144,8 @@ public:
 	MessageIdentifier GetPacketIdentifier(); // Only to be used after one byte has been read from the packet.
 
 	// To help with things, packets cache their priority and guid to make it easier for other functions to utilise without having to deserialise m_bytes.
-	PacketPriority m_priority;
-	GUID m_guid;
+	PacketPriority m_priority = PacketPriority::UNRELIABLE_UDP; // Just initializing to unreliable to suppress the warning.
+	GUID m_guid = GUID();
 
 
 	// ----------------------------- Derserialize verdaic function unpacking technique in progress here! ----------------------------- //

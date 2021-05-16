@@ -73,7 +73,7 @@ UDPListener::UDPListener(Peer* attachedPeer, std::string portNumber, std::string
 	// ------------------------ Zeroing out and setting up the FD sets. ------------------------ // 
 	FD_ZERO(&m_master);
 	FD_ZERO(&m_readReady);
-
+	
 	FD_SET(m_hostSocket, &m_master);
 	// ----------------------------------------------------------------------------------------- //
 

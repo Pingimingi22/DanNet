@@ -32,7 +32,7 @@ Peer::Peer(bool server, unsigned short portNumber)
 	{
 		m_connectedClients.reserve(10);
 	}
-	m_packetQueue.reserve(10);
+	m_packetQueue.reserve(10); // lol only reserving 10... I wonder what happens if users try to make more than this.
 
 	m_lagPacketQueue.reserve(MAX_LAG_PACKET_QUEUE_SIZE); // super important to reserve space for this one since iterating and erasing with two separate threads causes loots of problems.
 
@@ -61,7 +61,7 @@ Peer::Peer(bool server, unsigned short portNumber)
 
 Peer::~Peer()
 {
-	// TODO add WSACleanup stuff properly. i probally have to clean up in other places too.
+	// TODO add WSACleanup stuff properly. I probably have to clean up in other places too.
 	ShutdownPeer();
 	WSACleanup();
 }
