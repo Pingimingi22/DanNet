@@ -104,14 +104,14 @@ void UDPListener::Update()
 
 	// Again probably not the best place but it seems to be working okay so far.
 	// ----------------------------- Updating client time outs to check if they're still connected [SERVER SHOULD DO THIS]  ----------------------------- //
-	//m_attachedPeer->TimeoutUpdate();
+	m_attachedPeer->TimeoutUpdate();
 	// -------------------------------------------------------------------------------------------------------------------------------------------------- //
 	 
 	
 	// ----------------------------- Sending out alive packets to the server [ONLY CLIENT's SHOULD DO THIS] ----------------------------- //
 	if (m_attachedPeer->GetId() != -1) // If we have a client ID I thiiink that we can be sure we're dealing with a client. This does seem a bit dodgy but it'll work.
 	{
-		//m_attachedPeer->SendAlive();
+		m_attachedPeer->SendAlive();
 	}
 	// ---------------------------------------------------------------------------------------------------------------------------------- //
 
@@ -250,15 +250,15 @@ void UDPListener::Update()
 					ClientAlive clientAliveStruct;
 					incomingPacket->Deserialize(clientAliveStruct.MessagIdentifier, clientAliveStruct.clientID);
 					//std::cout << "Received an alive packet from one of the clients. Resetting client timeout..."<< std::endl;
-					m_attachedPeer->GetClient(clientAliveStruct.clientID).ResetTimer();
+					m_attachedPeer->GetClient(clientAliveStruct.clientID)->ResetTimer();
 				}
 				break;
 			}
 			default:
 				if (m_attachedPeer->m_packetQueue.size() <= 1)
 				{
-					std::lock_guard<std::mutex> guard(*m_attachedPeer->m_packetMutex);
-					m_attachedPeer->m_packetQueue.push_back(incomingPacket);
+					std::lock_guard<std::mutex> guard(*m_attachedPeer->m_packetMutex); // Incredibly important lock guard. Without it we can push while FlushCurrentPacket erases and that causes
+					m_attachedPeer->m_packetQueue.push_back(incomingPacket);		   // an error that is sooo rare but crashes the entire program.
 					MessageIdentifier testingIdentifier = incomingPacket->GetPacketIdentifier();
 					std::cout << std::endl;
 					std::cout << "Received a non core packet with an identifier of: " << (int)incomingPacket->GetPacketIdentifier() << std::endl;

@@ -46,7 +46,7 @@ public:
 
 	int GetId() { return m_ID; }
 	// Returns a ClientStruct containing the ip address and port of the client.
-	Client& GetClient(int id);
+	Client* GetClient(int id);
 
 
 	void SimulateLag(bool isSimulate, double lagInMilliseconds = 0);

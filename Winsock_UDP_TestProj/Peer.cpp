@@ -337,16 +337,22 @@ void Peer::FlushCurrentPacket()
 
 }
 
-Client& Peer::GetClient(int id)
+Client* Peer::GetClient(int id)
 {
 	for (int i = 0; i < m_connectedClients.size(); i++)
 	{
 		if (m_connectedClients[i].m_clientID == id)
 		{
-			return m_connectedClients[i];
+			return &m_connectedClients[i];
 		}
 	}
 	// otherwise they tried to find a client that doesn't exist.
+	// This could occur for numerous reasons but the two I'm going to bother focusing on are:
+	// - Somehow, somewhere, I've messed up the code and we're genuienly just calling an incorrect client id.
+	// - A client that has timedout and "lost connection" has now sent a client alive message back to the server but after the server removed them.
+	
+	return nullptr;
+
 	assert(false);
 }
 
@@ -439,6 +445,15 @@ void Peer::TimeoutUpdate()
 					std::cout << "================================ CLIENT DROPPED ================================" << std::endl;
 					std::cout << std::endl;
 					std::cout << std::endl;
+
+
+					// Sending message to all other client's that someone has timedout.
+					Packet timeoutPacket(PacketPriority::RELIABLE_UDP);
+					ClientTimeout timeoutStruct;
+					timeoutStruct.clientID = m_connectedClients[i].m_clientID;
+					timeoutPacket.Serialize(timeoutStruct.MessageIdentifier, timeoutStruct.clientID);
+					UDPSendToAll(timeoutPacket);
+					// ----------------------------------------------------------------
 
 					m_connectedClients.erase(m_connectedClients.begin() + i);
 				}
