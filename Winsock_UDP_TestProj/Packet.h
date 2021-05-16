@@ -25,11 +25,11 @@ class Packet
 
 public:
 	// With our new system of packet priority headers, we need to "seceretly" apply these headers to each packet. We do that here in the constructors.
-	Packet(int priority);
+	Packet(PacketPriority priority);
 
 private:
 	Packet() {} // We need a default constructor for Packet's because the UDPListener needs to be able to create a "generic" packet that it will fill in when it receives data.
-	Packet(int priority, GUID guid); // Special constructor only to be used internally. NOT by the user. When the udp listener needs to send an ACK back, 
+	Packet(PacketPriority priority, GUID guid); // Special constructor only to be used internally. NOT by the user. When the udp listener needs to send an ACK back, 
 		                             //they will construct the packet with this constructor so they can hand pick the GUID.
 public:
 	Packet(const Packet& otherPacket)
@@ -237,7 +237,7 @@ public:
 	// ----------------------------------------------------------------------------------------------------------------------------------------- //
 private:
 
-	void InternalHeaderSerialize(int& Priority, GUID* guid = nullptr)
+	void InternalHeaderSerialize(int Priority, GUID* guid = nullptr)
 	{
 
 

@@ -107,7 +107,7 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 
 	getsockname(m_hostSocket, (sockaddr*)&hostAddress, &hostSize);
 
-	Packet connectionPacket = Packet((int)PacketPriority::UNRELIABLE_UDP);
+	Packet connectionPacket = Packet(PacketPriority::UNRELIABLE_UDP);
 	ConnectionStruct connection;
 	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 25); // idk 256 is just random.
 	
@@ -261,7 +261,7 @@ void const Peer::UDPSendToAll(Packet& packet)
 	
 		for (int i = 0; i < m_connectedClients.size(); i++)
 		{
-			Packet uniquePacket(priority);
+			Packet uniquePacket((PacketPriority)priority);
 			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
 			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
 
@@ -293,7 +293,7 @@ void const Peer::UDPSendToAll(Packet& packet)
 			// Techanically we don't need to send unique packet's since GUID's wont even be checked if it's not a reliable packet.
 			// ------------------------------------------------------------------------ //
 
-			Packet uniquePacket(priority);
+			Packet uniquePacket((PacketPriority)priority);
 			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
 			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
 
@@ -451,7 +451,7 @@ void const Peer::AddClient(sockaddr_in& clientAddress)
 	//AC.firstByte = (int)MessageIdentifier::ACK_CONNECT;
 	AC.clientID = client.m_clientID;
 	AC.port = client.m_port;
-	Packet ACPacket((int)PacketPriority::UNRELIABLE_UDP);
+	Packet ACPacket(PacketPriority::UNRELIABLE_UDP);
 	ACPacket.Serialize(AC.firstByte, AC.clientID, AC.port);
 	std::cout << "Sending connection acknowledgement to client." << std::endl;
 	UDPSendTo(ACPacket, client.m_ipAddress, client.m_port);

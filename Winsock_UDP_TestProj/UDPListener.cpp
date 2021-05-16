@@ -140,7 +140,7 @@ void UDPListener::Update()
 			{
 				if (m_attachedPeer->m_packetQueue.size() <= 1) // Only want to acknowledge packet's if we can actually store them.
 				{
-					Packet ackPacket = Packet((int)PacketPriority::UNRELIABLE_UDP, incomingGuid); // the acknowledgement doesn't have to be reliable because if the client doesn't receive it, 
+					Packet ackPacket = Packet(PacketPriority::UNRELIABLE_UDP, incomingGuid); // the acknowledgement doesn't have to be reliable because if the client doesn't receive it, 
 																								  // it will ask for another one anyway.
 					int ackPackIdentifier = (int)MessageIdentifier::RELIABLE_UDP_ACK;
 					ackPacket.Serialize(ackPackIdentifier);
