@@ -142,12 +142,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Client.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="Peer.cpp" />
     <ClCompile Include="UDPListener.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ClientStruct.h" />
+    <ClInclude Include="Client.h" />
     <ClInclude Include="CorePackets.h" />
     <ClInclude Include="MessageIdentifiers.h" />
     <ClInclude Include="Packet.h" />

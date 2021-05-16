@@ -24,6 +24,9 @@
     <ClCompile Include="Packet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Peer.h">
@@ -44,7 +47,7 @@
     <ClInclude Include="CorePackets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ClientStruct.h">
+    <ClInclude Include="Client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PacketPriorities.h">

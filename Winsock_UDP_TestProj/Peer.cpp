@@ -190,7 +190,7 @@ void Peer::UpdateReliableSends()
 			m_reliablePackets[i].CheckPacketTimer();
 			m_reliablePackets[i].GetTimeDuration();
 
-			if (m_reliablePackets[i].m_elapsedMilliseconds >= m_lagInMilliseconds) 
+			if (m_reliablePackets[i].m_elapsedMilliseconds >= transmissionRate) 
 			{
 				MessageIdentifier type = m_reliablePackets[i].GetPacketIdentifier();
 				
@@ -330,13 +330,14 @@ void Peer::FlushCurrentPacket()
 
 	if (m_packetQueue[0] != nullptr)
 	{
+		std::lock_guard<std::mutex> guard(*m_packetMutex); // Incredibly important! Without locking this, the UDPListener can push while we are erasing which causes a really bad but rare crash.
 		delete m_packetQueue[0]; // ============================= ASK FINN ============================= Do we have to delete or will erase take care of it for us? 
 		m_packetQueue.erase(m_packetQueue.begin());
 	}
 
 }
 
-ClientStruct Peer::GetClient(int id)
+Client& Peer::GetClient(int id)
 {
 	for (int i = 0; i < m_connectedClients.size(); i++)
 	{
@@ -346,7 +347,7 @@ ClientStruct Peer::GetClient(int id)
 		}
 	}
 	// otherwise they tried to find a client that doesn't exist.
-	assert(true);
+	assert(false);
 }
 
 void Peer::SimulateLag(bool isSimulate, double lagInMilliseconds)
@@ -418,6 +419,69 @@ void Peer::UpdateLagSends()
 	}
 }
 
+void Peer::TimeoutUpdate()
+{
+	if (m_connectedClients.size() > 0) // We have client's to check.
+	{
+		for (int i = 0; i < m_connectedClients.size(); i++)
+		{
+			if (!m_connectedClients[i].m_isTimerStarted) // If the timer isn't started, start it.
+			{
+				m_connectedClients[i].StartTimer();
+			}
+			else // Otherwise the timer is started so we have to check if it goes past the timeout threshold.
+			{
+				if (m_connectedClients[i].CheckTimer(7000)) // 5000 milliseconds, so going without an alive packet for 5 seconds will result in the client getting dropped.
+				{
+					// drop client.
+					std::cout << std::endl;
+					std::cout << std::endl;
+					std::cout << "================================ CLIENT DROPPED ================================" << std::endl;
+					std::cout << std::endl;
+					std::cout << std::endl;
+
+					m_connectedClients.erase(m_connectedClients.begin() + i);
+				}
+			}
+		}
+	}
+}
+
+void Peer::SendAlive()
+{
+	// Doing some checks and calculations to make sure we're ready to send. This is so we don't spam send thing a bunch.
+	if (!m_hasAliveSendTimerStarted) // If we havn't started timing it, let's start it.
+	{
+		m_hasAliveSendTimerStarted = true;
+		m_aliveSendStart = std::chrono::system_clock::now();
+	}
+
+	else // Otherwise, we have started the timer and we should be checking if the timer reaches the required threshold.
+	{
+		m_aliveSendEnd = std::chrono::system_clock::now();
+		double elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(m_aliveSendEnd - m_aliveSendStart).count();
+
+		if (elapsedTime >= m_aliveSendOutTime)
+		{
+			m_readyToSendAlive = true; // Setting it to true so we can now send out an alive packet.
+		}
+	}
+
+
+	if (m_readyToSendAlive)
+	{
+		ClientAlive clientAliveStruct;
+		clientAliveStruct.clientID = m_ID;
+		Packet packet(PacketPriority::UNRELIABLE_UDP);
+		packet.Serialize(clientAliveStruct.MessagIdentifier, clientAliveStruct.clientID);
+		UDPSend(packet);
+
+		// Clearing the m_readyToSendAlive so we can start the timer again.
+		m_readyToSendAlive = false;
+		m_hasAliveSendTimerStarted = false;
+	}
+}
+
 void Peer::Update()
 {
 	while (m_udpListener.IsRunning())
@@ -434,7 +498,7 @@ void Peer::Update()
 
 void const Peer::AddClient(sockaddr_in& clientAddress)
 {
-	ClientStruct client;
+	Client client;
 	inet_ntop(AF_INET, &clientAddress.sin_addr.S_un.S_addr, &client.m_ipAddress[0], 25);
 	client.m_clientID = m_clientCount;
 	client.m_port = ntohs(clientAddress.sin_port);

@@ -101,6 +101,21 @@ void UDPListener::Update()
 	m_attachedPeer->UpdateLagSends();
 	// ------------------------------------------------------------------------------------------------------------------------------------ //
 
+
+	// Again probably not the best place but it seems to be working okay so far.
+	// ----------------------------- Updating client time outs to check if they're still connected [SERVER SHOULD DO THIS]  ----------------------------- //
+	//m_attachedPeer->TimeoutUpdate();
+	// -------------------------------------------------------------------------------------------------------------------------------------------------- //
+	 
+	
+	// ----------------------------- Sending out alive packets to the server [ONLY CLIENT's SHOULD DO THIS] ----------------------------- //
+	if (m_attachedPeer->GetId() != -1) // If we have a client ID I thiiink that we can be sure we're dealing with a client. This does seem a bit dodgy but it'll work.
+	{
+		//m_attachedPeer->SendAlive();
+	}
+	// ---------------------------------------------------------------------------------------------------------------------------------- //
+
+
 	m_readReady = m_master;
 	timeval tv;
 	tv.tv_sec = 0;
@@ -228,9 +243,21 @@ void UDPListener::Update()
 				}
 				break;
 			}
+			case MessageIdentifier::CLIENT_ALIVE:
+			{
+				if (m_attachedPeer->m_packetQueue.size() <= 1)
+				{
+					ClientAlive clientAliveStruct;
+					incomingPacket->Deserialize(clientAliveStruct.MessagIdentifier, clientAliveStruct.clientID);
+					//std::cout << "Received an alive packet from one of the clients. Resetting client timeout..."<< std::endl;
+					m_attachedPeer->GetClient(clientAliveStruct.clientID).ResetTimer();
+				}
+				break;
+			}
 			default:
 				if (m_attachedPeer->m_packetQueue.size() <= 1)
 				{
+					std::lock_guard<std::mutex> guard(*m_attachedPeer->m_packetMutex);
 					m_attachedPeer->m_packetQueue.push_back(incomingPacket);
 					MessageIdentifier testingIdentifier = incomingPacket->GetPacketIdentifier();
 					std::cout << std::endl;

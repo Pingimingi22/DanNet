@@ -9,6 +9,7 @@
 
 // These "core" packet structs are used in things like establishing connections to and from the server with UDP and stuff.
 
+
 struct ConnectionStruct
 {
 	int firstByte = (int)MessageIdentifier::CONNECT;
@@ -26,4 +27,19 @@ struct ACKConnection
 struct ACKUDP
 {
 	int firstByte = (int)MessageIdentifier::RELIABLE_UDP_ACK;
+};
+
+// Client's will continuously send this to their server or whatever they're connected to to keep their connection. If the server doesn't receive this within a certain time frame, the server will
+// send out a ClientTimeout to all other remaining clients which will signal them to delete their reference to the timed out client.
+struct ClientAlive
+{
+	int MessagIdentifier = (int)MessageIdentifier::CLIENT_ALIVE;
+	int clientID;
+};
+
+// Client's will receive this from the main server and can use it for whatever suits their program.
+struct ClientTimeout
+{
+	int MessageIdentifier = (int)MessageIdentifier::CLIENT_TIMEOUT;
+	int clientID;
 };
