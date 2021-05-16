@@ -111,10 +111,10 @@ void UDPListener::Update()
 		std::cerr << "select() error." << std::endl;
 	}
 	
+	Packet* incomingPacket = new Packet();
 	if (FD_ISSET(m_hostSocket, &m_readReady))
 	{
 		char recvBuffer[256];
-		Packet* incomingPacket = new Packet();
 
 
 		// temporary cache of incoming client address.
@@ -244,22 +244,20 @@ void UDPListener::Update()
 		else if (result == -1)
 		{
 			// ==================================== NOTE ======================================
-			// this was a cool idea being able to clear current packets with incoming packets but it causes issues and i plan on replacing it with a packet queue system.
+			// Must delete incomingPacket here since it wasn't put into the vector which means the user has no means of freeing up the memory.
 			// ================================================================================
 			delete incomingPacket;
 			m_attachedPeer->m_currentPacket = nullptr; // have to set that to nullptr so that way it flushes out the old packet.
-			//
-			//std::cerr << "UDPListener recvfrom() error." << std::endl;
-
+			
 		}
 		else if (result == 0)
 		{
 			// ==================================== NOTE ======================================
-			// this was a cool idea being able to clear current packets with incoming packets but it causes issues and i plan on replacing it with a packet queue system.
+			// Must delete incomingPacket here since it wasn't put into the vector which means the user has no means of freeing up the memory.
 			// ================================================================================
 			delete incomingPacket;
 			m_attachedPeer->m_currentPacket = nullptr;
-			//
+			
 			//// i'm not exactly sure what 0 means but i do know that it means we havn't received any bytes.
 		}
 	}
@@ -267,6 +265,9 @@ void UDPListener::Update()
 	{
 		// if we havn't received anything.
 		//m_attachedPeer->m_currentPacket = nullptr;
+
+		delete incomingPacket;
+		
 
 
 		//std::cout << "UDPListener timeout." << std::endl;

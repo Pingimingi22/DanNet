@@ -116,21 +116,21 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 
 	getsockname(m_hostSocket, (sockaddr*)&hostAddress, &hostSize);
 
-	Packet* connectionPacket = new Packet((int)PacketPriority::UNRELIABLE_UDP);
+	Packet connectionPacket = Packet((int)PacketPriority::UNRELIABLE_UDP);
 	ConnectionStruct connection;
 	//connection.ip = ntohl(hostAddress.sin_addr.S_un.S_addr);
 	inet_ntop(AF_INET, &hostAddress.sin_addr.S_un.S_addr, &connection.ip[0], 25); // idk 256 is just random.
 	
-	connectionPacket->Serialize(connection.firstByte, connection.ip);
+	connectionPacket.Serialize(connection.firstByte, connection.ip);
 
 	// delete this just for testing.
 	int testPacketPriority;
 	GUID testGuid;
-	connectionPacket->InternalHeaderDeserialize(testPacketPriority, testGuid);
+	connectionPacket.InternalHeaderDeserialize(testPacketPriority, testGuid);
 
 	ConnectionStruct testingConnection;
 	testingConnection.firstByte = 0;
-	connectionPacket->Deserialize(testingConnection.firstByte, testingConnection.ip);
+	connectionPacket.Deserialize(testingConnection.firstByte, testingConnection.ip);
 	std::cout << "=================================" << std::endl;
 	std::cout << testingConnection.firstByte << std::endl;
 	std::cout << "=================================" << std::endl;
@@ -138,7 +138,7 @@ void Peer::Connect(std::string ipAddress, unsigned short portNumber)
 
 
 	//m_udpListener.Send(*connectionPacket);
-	UDPSend(*connectionPacket);
+	UDPSend(connectionPacket);
 	//delete connectionPacket;
 
 }
