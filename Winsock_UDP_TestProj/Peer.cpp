@@ -18,7 +18,7 @@ Peer::Peer(bool server, unsigned short portNumber)
 	WSADATA wsadata;
 	int result = WSAStartup(MAKEWORD(2, 2), &wsadata);
 
-	// initialising my test mutex.
+	// initialising my mutexes.
 	m_packetMutex = std::make_unique<std::mutex>();
 
 	m_reliablePacketMutex = std::make_unique<std::mutex>();
@@ -34,7 +34,7 @@ Peer::Peer(bool server, unsigned short portNumber)
 	}
 	m_packetQueue.reserve(10);
 
-	m_lagPacketQueue.reserve(MAX_LAG_PACKET_QUEUE_SIZE);
+	m_lagPacketQueue.reserve(MAX_LAG_PACKET_QUEUE_SIZE); // super important to reserve space for this one since iterating and erasing with two separate threads causes loots of problems.
 
 
 	if (result != 0)
@@ -65,13 +65,6 @@ Peer::~Peer()
 	ShutdownPeer();
 	WSACleanup();
 }
-
-//Peer Peer::CreatePeer(bool server, unsigned short portNumber)
-//{
-//	Peer whatev;
-//	// eh maybe i'll make this a thing one day. The constructor is fine for now.
-//	return whatev;
-//}
 
 void Peer::StartPeer()
 {
@@ -228,8 +221,6 @@ void const Peer::UDPSendTo(Packet& packet, char* ipAddress, unsigned short port)
 	{
 		if (m_isServer) // If we are the server let's cache the destination ip address and port into this packet so we can continously send it in the reliable udp update function.
 		{
-			//strcpy_s(packet.m_destinationIP, ipAddress);
-			//packet.m_destinationPort = port;
 			packet.SetDestination(ipAddress, port);
 		}
 
@@ -274,8 +265,6 @@ void const Peer::UDPSendToAll(Packet& packet)
 			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
 			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
 
-			//memcpy(&uniquePacket.m_destinationIP[0], &packet.m_destinationIP[0], 15);
-			//uniquePacket.m_destinationPort = packet.m_destinationPort;
 
 			uniquePacket.SetDestination(packet.m_destinationIP, packet.m_destinationPort);
 
@@ -308,8 +297,6 @@ void const Peer::UDPSendToAll(Packet& packet)
 			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
 			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
 
-			//memcpy(&uniquePacket.m_destinationIP[0], &packet.m_destinationIP[0], 15);
-			//uniquePacket.m_destinationPort = packet.m_destinationPort;
 
 			uniquePacket.SetDestination(packet.m_destinationIP, packet.m_destinationPort);
 
