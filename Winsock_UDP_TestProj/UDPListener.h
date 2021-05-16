@@ -23,8 +23,6 @@ public:
 
 	void Update();
 
-	void const Receive(const char* buffer);
-
 	// Sends to the connected peer.
 	void Send(Packet& packet);
 	// Server's can use this to send things to specific clients without being "connected" to them.

@@ -11,15 +11,6 @@
 #include "CorePackets.h"
 #include <mutex>
 
-// DELETE THIS LATER.
-struct TestStruct
-{
-	int hello = 0;
-	int goodbye = 0;
-	int test1 = 0;
-	int test2 = 0;
-	int test3 = 0;
-};
 
 UDPListener::UDPListener(Peer* attachedPeer, std::string portNumber, std::string ipAddress)
 {
@@ -104,10 +95,11 @@ void UDPListener::Close()
 void UDPListener::Update()
 {
 	// Probably not the optimal place to have this since this is the "listener" but I think it'll work fine. maybe.
+	// --------------------------------------- Sending reliable packets and laggy packets on timers --------------------------------------- // 
 	m_attachedPeer->UpdateReliableSends();
 
 	m_attachedPeer->UpdateLagSends();
-	
+	// ------------------------------------------------------------------------------------------------------------------------------------ //
 
 	m_readReady = m_master;
 	timeval tv;
@@ -121,8 +113,6 @@ void UDPListener::Update()
 	
 	if (FD_ISSET(m_hostSocket, &m_readReady))
 	{
-		//std::cout << "Update test" << std::endl;
-
 		char recvBuffer[256];
 		Packet* incomingPacket = new Packet();
 
@@ -284,11 +274,6 @@ void UDPListener::Update()
 
 }
 
-void const UDPListener::Receive(const char* buffer)
-{
-	//return nullptr;
-}
-
 void UDPListener::Send(Packet& packet)
 {
 	int sendResult = sendto(m_hostSocket, packet.m_allBytes, 256, 0, (sockaddr*)&m_attachedPeer->m_serverConnection, sizeof(sockaddr_in));
@@ -301,10 +286,6 @@ void UDPListener::Send(Packet& packet)
 		std::cout << "Successfully sent out [" << sendResult << "] bytes." << std::endl;
 	}
 }
-
-//void UDPListener::SendReliable(Packet packet)
-//{
-//}
 
 void UDPListener::SendTo(Packet& packet, char* ipAddress, unsigned short port)
 {
