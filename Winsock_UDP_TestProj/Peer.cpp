@@ -182,6 +182,7 @@ void Peer::UpdateReliableSends()
 
 	if (m_reliablePackets.size() > 0)
 	{
+		std::lock_guard<std::mutex> guard(*m_reliablePacketMutex);
 		for (int i = 0; i < m_reliablePackets.size(); i++)
 		{
 			if(!m_reliablePackets[i].m_isTimerStarted)
@@ -458,14 +459,15 @@ void Peer::TimeoutUpdate()
 
 					// -------------------- Cleaning up reliable UDP packets -------------------- //
 					// If we have any reliable UDP packet's still trying to be sent to the newly disconnected client, we'll remove them.
+					std::lock_guard<std::mutex> guard(*m_reliablePacketMutex.get());
 					for (int j = 0; j < m_reliablePackets.size(); j++)
 					{
 						Client* droppedClient = GetClient(m_connectedClients[i].m_clientID);
-						if (strcmp(m_reliablePackets[j].m_destinationIP, droppedClient->m_ipAddress) == 0)
-						{
-							// This reliable UDP packet was meant to be sent to the disconnected client, so clear this packet from the reliable udp queue.
-							std::lock_guard<std::mutex> guard(*m_reliablePacketMutex.get());
-							m_reliablePackets.erase(m_reliablePackets.begin() + j);
+						//Client* reliablePacketClient = GetClient(m_reliablePackets[j].)
+						if (strcmp(m_reliablePackets[j].m_destinationIP, droppedClient->m_ipAddress) && m_reliablePackets[j].m_destinationPort == droppedClient->m_port) // Reason why we check both ip and port
+						{																																				 // is because when I'm testing on my PC
+							// This reliable UDP packet was meant to be sent to the disconnected client, so clear this packet from the reliable udp queue.				 // all the ip's are the same so I need another
+							m_reliablePackets.erase(m_reliablePackets.begin() + j);																						 // form of verification.
 							std::cout << "Removed reliable UDP packet due to it's destination client being dropped." << std::endl;
 						}
 					}
