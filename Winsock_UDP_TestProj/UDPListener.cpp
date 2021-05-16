@@ -250,7 +250,16 @@ void UDPListener::Update()
 					ClientAlive clientAliveStruct;
 					incomingPacket->Deserialize(clientAliveStruct.MessagIdentifier, clientAliveStruct.clientID);
 					//std::cout << "Received an alive packet from one of the clients. Resetting client timeout..."<< std::endl;
-					m_attachedPeer->GetClient(clientAliveStruct.clientID)->ResetTimer();
+
+					Client* client = m_attachedPeer->GetClient(clientAliveStruct.clientID);
+					if (client)
+					{
+						client->ResetTimer();
+					}
+					else
+					{
+						std::cout << "Received a client alive from a client that isn't connected anymore." << std::endl;
+					}
 				}
 				break;
 			}

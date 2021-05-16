@@ -455,7 +455,23 @@ void Peer::TimeoutUpdate()
 					UDPSendToAll(timeoutPacket);
 					// ----------------------------------------------------------------
 
+
+					// -------------------- Cleaning up reliable UDP packets -------------------- //
+					// If we have any reliable UDP packet's still trying to be sent to the newly disconnected client, we'll remove them.
+					for (int j = 0; j < m_reliablePackets.size(); j++)
+					{
+						Client* droppedClient = GetClient(m_connectedClients[i].m_clientID);
+						if (strcmp(m_reliablePackets[j].m_destinationIP, droppedClient->m_ipAddress) == 0)
+						{
+							// This reliable UDP packet was meant to be sent to the disconnected client, so clear this packet from the reliable udp queue.
+							std::lock_guard<std::mutex> guard(*m_reliablePacketMutex.get());
+							m_reliablePackets.erase(m_reliablePackets.begin() + j);
+							std::cout << "Removed reliable UDP packet due to it's destination client being dropped." << std::endl;
+						}
+					}
+
 					m_connectedClients.erase(m_connectedClients.begin() + i);
+
 				}
 			}
 		}
