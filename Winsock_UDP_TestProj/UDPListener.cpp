@@ -210,6 +210,12 @@ void UDPListener::Update()
 
 								// Removing it from the packet queue so user's don't have to deal with this type of packet.
 								//std::lock_guard<std::mutex> guard(*m_attachedPeer->m_reliablePacketMutex.get()); // Maybe we are reading in and erasing at the same time and that might be what is causing issues.
+								// =============== NOTE =============== //
+								// This lock_guard is commented			//
+								// out since we've locked the entire	//
+								// for loop now.						//
+								// ==================================== //
+
 								m_attachedPeer->m_reliablePackets.erase(m_attachedPeer->m_reliablePackets.begin() + i); // guess this is why containers start at 0, so you can do this cool trick.
 							}
 

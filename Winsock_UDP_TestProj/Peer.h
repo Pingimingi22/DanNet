@@ -112,8 +112,8 @@ private:
 	std::chrono::time_point<std::chrono::system_clock> m_aliveSendEnd;
 
 	// Mutex for m_connectedClients std::vector since we iterate and erase on two seperate threads.
-	std::unique_ptr<std::mutex> m_connectedClientsMutex;
-	
+	std::unique_ptr<std::recursive_mutex> m_connectedClientsMutex; // ---------------> This has to be a recursive_mutex because I have functions that have calls to functions which also need to lock the same mutex.
+																   //                  An example is TimeoutUpdate() which locks and then GetClient() which also has to lock which is called in TimeoutUpdate().
 
 
 

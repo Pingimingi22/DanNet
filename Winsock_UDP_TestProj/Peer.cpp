@@ -25,7 +25,7 @@ Peer::Peer(bool server, unsigned short portNumber)
 
 	m_lagPacketMutex = std::make_unique<std::mutex>();
 
-	m_connectedClientsMutex = std::make_unique<std::mutex>();
+	m_connectedClientsMutex = std::make_unique<std::recursive_mutex>();
 	// -------------------------------------------------------------
 
 	// testing reserving spaces for our std::vector's since I'm having memory issues.
@@ -342,7 +342,7 @@ void Peer::FlushCurrentPacket()
 
 Client* Peer::GetClient(int id)
 {
-	std::lock_guard<std::mutex> clientGuard(*m_connectedClientsMutex.get());
+	std::lock_guard<std::recursive_mutex> clientGuard(*m_connectedClientsMutex.get());
 	for (int i = 0; i < m_connectedClients.size(); i++)
 	{
 		if (m_connectedClients[i].m_clientID == id)
@@ -401,7 +401,7 @@ void Peer::UpdateLagSends()
 
 				if (!m_isServer) // if we're not the server we're probably connected so we can use Send()
 				{
-					std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex);
+					std::lock_guard<std::mutex> lagPacketGuard(*m_lagPacketMutex.get());
 					m_udpListener.Send(m_lagPacketQueue[i]);																		 // ================================== IMPORTANT NOTE ================================== // 
 					std::cout << "Sent out a laggy udp packet with Send() of type [" << (int)type << "]." << std::endl;				 // The reason why I'm using m_udpListener.Send() instead of UDPSend() is because UDPSend()
 					m_lagPacketQueue[i].StopPacketTimer();																		     // will add the packet to the packet queue, and since we are "re-sending" packets, we would
@@ -433,6 +433,7 @@ void Peer::TimeoutUpdate()
 {
 	if (m_connectedClients.size() > 0) // We have client's to check.
 	{
+		std::lock_guard<std::recursive_mutex> clientGuard(*m_connectedClientsMutex.get());
 		for (int i = 0; i < m_connectedClients.size(); i++)
 		{
 			if (!m_connectedClients[i].m_isTimerStarted) // If the timer isn't started, start it.
@@ -467,15 +468,15 @@ void Peer::TimeoutUpdate()
 					{
 						Client* droppedClient = GetClient(m_connectedClients[i].m_clientID);
 						//Client* reliablePacketClient = GetClient(m_reliablePackets[j].)
-						if (strcmp(m_reliablePackets[j].m_destinationIP, droppedClient->m_ipAddress) && m_reliablePackets[j].m_destinationPort == droppedClient->m_port) // Reason why we check both ip and port
-						{																																				 // is because when I'm testing on my PC
-							// This reliable UDP packet was meant to be sent to the disconnected client, so clear this packet from the reliable udp queue.				 // all the ip's are the same so I need another
-							m_reliablePackets.erase(m_reliablePackets.begin() + j);																						 // form of verification.
+						if (strcmp(m_reliablePackets[j].m_destinationIP, droppedClient->m_ipAddress) == 0 && m_reliablePackets[j].m_destinationPort == droppedClient->m_port) // Reason why we check both ip and port
+						{																																					  // is because when I'm testing on my PC
+							// This reliable UDP packet was meant to be sent to the disconnected client, so clear this packet from the reliable udp queue.					  // all the ip's are the same so I need another
+							m_reliablePackets.erase(m_reliablePackets.begin() + j);																							  // form of verification.
 							std::cout << "Removed reliable UDP packet due to it's destination client being dropped." << std::endl;
 						}
 					}
 
-					std::lock_guard<std::mutex> clientGuard(*m_connectedClientsMutex.get());
+					//std::lock_guard<std::mutex> clientGuard(*m_connectedClientsMutex.get()); ------> This is commented out since we are locking the entire for loop now.
 					m_connectedClients.erase(m_connectedClients.begin() + i);
 
 				}
@@ -542,6 +543,7 @@ void const Peer::AddClient(sockaddr_in& clientAddress)
 
 	m_clientCount++; // increasing the connected clients counter.
 
+	std::lock_guard<std::recursive_mutex> clientGuard(*m_connectedClientsMutex.get());
 	m_connectedClients.push_back(client);
 
 	std::cout << std::endl;

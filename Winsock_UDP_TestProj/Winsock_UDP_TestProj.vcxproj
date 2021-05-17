@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClInclude Include="Client.h" />
     <ClInclude Include="CorePackets.h" />
+    <ClInclude Include="DanNet.h" />
     <ClInclude Include="MessageIdentifiers.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketPriorities.h" />

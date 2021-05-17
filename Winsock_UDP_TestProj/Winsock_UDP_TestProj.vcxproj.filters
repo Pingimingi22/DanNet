@@ -53,5 +53,8 @@
     <ClInclude Include="PacketPriorities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DanNet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
