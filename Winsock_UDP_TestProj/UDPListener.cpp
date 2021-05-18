@@ -217,6 +217,7 @@ void UDPListener::Update()
 								// ==================================== //
 
 								m_attachedPeer->m_reliablePackets.erase(m_attachedPeer->m_reliablePackets.begin() + i); // guess this is why containers start at 0, so you can do this cool trick.
+								i--;
 							}
 
 						}

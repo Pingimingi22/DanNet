@@ -206,6 +206,9 @@ void Peer::UpdateReliableSends()
 				
 				else // otherwise this is the server and we have to use the SendTo() function.
 				{
+					// super basic error checking.
+					assert(m_reliablePackets[i].m_destinationPort != 0);
+
 					m_udpListener.SendTo(m_reliablePackets[i], m_reliablePackets[i].m_destinationIP, m_reliablePackets[i].m_destinationPort);														
 					std::cout << "Sent out a reliable udp packet with SendTo() again of type [" << (int)type << "]." << std::endl;	 
 					m_reliablePackets[i].StopPacketTimer();
@@ -259,26 +262,22 @@ void const Peer::UDPSendToAll(Packet& packet)
 	
 	// but of course we only want a unique GUID if they are sending a reliable UDP packet.
 	if (priority == int(PacketPriority::RELIABLE_UDP))
-	{
-		
-	
+	{	
 		for (int i = 0; i < m_connectedClients.size(); i++)
 		{
 			Packet uniquePacket((PacketPriority)priority);
-			// to get the binary data from the original packet into this one, i'm gonna try memcpy.
-			memcpy(&uniquePacket.m_allBytes[0], &packet.m_allBytes[0], 256);
 
+			// This little serialization step is important. Behind the scenes, when I make the uniquePacket, the constructor calls InternalHeaderSerialize(). In order to complete that process, I need
+			// to call the regular Serialize(). It's a bit weird but it's working right now.
+			int arbitraryNumber = 9;
+			uniquePacket.Serialize(arbitraryNumber);
 
+			// We only want to copy the actual payload data, not the internal header, since we have our own unique GUID in our internal header.
+			memcpy(&uniquePacket.m_allBytes[sizeof(GUID) + sizeof(int)], &packet.m_allBytes[sizeof(GUID) + sizeof(int)], 256 - (sizeof(GUID) + sizeof(int))); // skipping over the internal stuff because we just want the payload.
+
+			
 			uniquePacket.SetDestination(packet.m_destinationIP, packet.m_destinationPort);
 
-			uniquePacket.m_guid.Data1 = packet.m_guid.Data1;
-			uniquePacket.m_guid.Data2 = packet.m_guid.Data2;
-			uniquePacket.m_guid.Data3 = packet.m_guid.Data3;
-
-			for (int x = 0; x < 8; x++)
-			{
-				uniquePacket.m_guid.Data4[x] = packet.m_guid.Data4[x];
-			}
 
 			UDPSendTo(uniquePacket, m_connectedClients[i].m_ipAddress, m_connectedClients[i].m_port);
 		}
@@ -473,12 +472,13 @@ void Peer::TimeoutUpdate()
 							// This reliable UDP packet was meant to be sent to the disconnected client, so clear this packet from the reliable udp queue.					  // all the ip's are the same so I need another
 							m_reliablePackets.erase(m_reliablePackets.begin() + j);																							  // form of verification.
 							std::cout << "Removed reliable UDP packet due to it's destination client being dropped." << std::endl;
+							j--;
 						}
 					}
 
 					//std::lock_guard<std::mutex> clientGuard(*m_connectedClientsMutex.get()); ------> This is commented out since we are locking the entire for loop now.
 					m_connectedClients.erase(m_connectedClients.begin() + i);
-
+					i--; 
 				}
 			}
 		}
