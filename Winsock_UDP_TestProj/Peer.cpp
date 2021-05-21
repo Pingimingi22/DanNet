@@ -355,8 +355,6 @@ Client* Peer::GetClient(int id)
 	// - A client that has timedout and "lost connection" has now sent a client alive message back to the server but after the server removed them.
 	
 	return nullptr;
-
-	assert(false);
 }
 
 void Peer::SimulateLag(bool isSimulate, double lagInMilliseconds)

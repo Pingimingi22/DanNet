@@ -37,7 +37,7 @@ public:
 	Packet(const Packet& otherPacket)
 	{
 		this->m_priority = otherPacket.m_priority;
-		for (int i = 0; i < 15; i++)
+		for (int i = 0; i < 20; i++)
 		{
 			this->m_destinationIP[i] = otherPacket.m_destinationIP[i];
 		}
@@ -65,7 +65,7 @@ public:
 	Packet operator=(Packet otherPacket)
 	{
 		this->m_priority = otherPacket.m_priority;
-		for (int i = 0; i < 15; i++)
+		for (int i = 0; i < 20; i++)
 		{
 			this->m_destinationIP[i] = otherPacket.m_destinationIP[i];
 		}
@@ -127,7 +127,7 @@ public:
 	// ----------------- STUFF FOR RELIABLE UDP WITH SERVERS ----------------- //
 	// Because server's don't "connect" they can't use the regular Send() function but right now reliable udp packets are continusously sent with Send(). I need a way to cache the ip address
 	// so I can use SendTo() instead.
-	char m_destinationIP[15];
+	char m_destinationIP[20];
 	unsigned short m_destinationPort = 0; // Initializing to 0 to suppress warning.
 
 	
