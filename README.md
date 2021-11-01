@@ -7,6 +7,8 @@ DanNet, a simple networking library that UDP sockets. It was created for my Comp
 This manual is a brief explanation of how to use DanNet. For more indepth examples see my 
 implementation program which has an example of a graphical client and a server.
 
+An example implementation project can be found at https://github.com/Pingimingi22/DanNet-Graphical-Implementation
+
 ## About
 DanNet is a networking library that uses a single UDP socket to send and receive packets. User's
 of DanNet can create their own packets that can contain a maximum size of 256 bytes. DanNet depends on
