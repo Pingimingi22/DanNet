@@ -2,28 +2,29 @@
 DanNet, a simple networking library that UDP sockets. It was created for my Complex Games Unit at AIE. It features reliable UDP and fake latency.
 
 
-========================================== DanNet Manual ==========================================
+# DanNet Manual
 
 This manual is a brief explanation of how to use DanNet. For more indepth examples see my 
 implementation program which has an example of a graphical client and a server.
 
-
+## About
 DanNet is a networking library that uses a single UDP socket to send and receive packets. User's
 of DanNet can create their own packets that can contain a maximum size of 256 bytes. DanNet depends on
 the c++ serialization library Cereal.
 
+## Features
 DanNet's Features:
 	- Reliable UDP packets.
 	- Lag simulation. (Stalls the time of which packets are sent out.)
 	
 	
-	
+## Tutorial
 To begin using DanNet add the Winsock_UDP_TestProj.lib and DanNet header files to your project.
 For debug mode add the Winsock_UDP_TestProj-d.lib file instead. When you have added the library 
 and header files, include the "DanNet.h" header to use DanNet in your project. 
 	
 
-========== Creating a Peer ==========
+### Creating a Peer
 Peer's can either be in server mode or client mode depending on what you pass in the parameters.
 By default, the parameters are set to false and 0 respectively, which would be used to create a client peer.
 	
@@ -39,11 +40,11 @@ By default, the parameters are set to false and 0 respectively, which would be u
 	
 	You can choose to simulate lag by calling SimulateLag(bool isSimulate, double lagInMilliseconds = 0) after you have started your Peer.
 	
-=====================================
 
 
 
-========== Making custom message identifiers ==========
+
+### Making custom message identifiers
 An important part of DanNet is that the first thing user's should serialize into packets is what type of message the packet is.
 To do that, you want to serialize a MessageIdentifier before you serialize anything else into the packet. To create your own
 custom message identifiers, define an enum class named whatever you want and initialize the first enum to MessageIdentifier::CUSTOM_USER_ENUM.
@@ -58,11 +59,11 @@ custom message identifiers, define an enum class named whatever you want and ini
 		}
 	}
 
-=======================================================
 
 
 
-========== Creating and sending packets ==========
+
+### Creating and sending packets
 When creating Packet's, depending on what you pass into the constructor, you can make either unreliable or reliable UDP packets.
 
 	Packet examplePacket(PacketPriority priority)
@@ -95,11 +96,11 @@ You have access to UDPSend(Packet& packet), UDPSendTo(Packet& packet, char* ipAd
 	
 	- UDPSendToAll() Should be used for the server when you want to send a message to every connected client.	
 	
-==================================================
 
 
 
-========== Receiving packets ==========
+
+### Receiving packets
 To receive packets, you want to process every packet you currently have in your main game loop. An example can be found in the implementation but a summarised example
 is below.
 
@@ -135,4 +136,4 @@ deserialize in the same order you serialized on the other end.
 		}
 	}
 
-=======================================
+
